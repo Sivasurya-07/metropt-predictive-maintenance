@@ -34,12 +34,12 @@ graph TD
     classDef db fill:#38A169,stroke:#276749,stroke-width:2px,color:#FFF,rx:8px,ry:8px;
     
     %% Nodes
-    A[🚊 Edge Device / Sensors]:::client
-    B(FastAPI Gateway):::server
-    C[(Redis Stream & Window Cache)]:::db
-    D[🧠 ONNX Runtime (LightGBM)]:::model
-    E[📊 React Dashboard]:::client
-    F[📈 SHAP Explainer Engine]:::model
+    A["🚊 Edge Device / Sensors"]:::client
+    B("FastAPI Gateway"):::server
+    C[("Redis Stream & Window Cache")]:::db
+    D["🧠 ONNX Runtime (LightGBM)"]:::model
+    E["📊 React Dashboard"]:::client
+    F["📈 SHAP Explainer Engine"]:::model
 
     %% Connections
     A -->|Raw Telemetry JSON<br/>HTTP/MQTT| B
