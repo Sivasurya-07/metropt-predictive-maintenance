@@ -28,8 +28,8 @@ RUN pip install --no-cache /wheels/*
 
 # Copy project source code
 COPY src/ ./src/
-COPY data/ ./data/
 COPY models/ ./models/
+RUN mkdir -p data/raw data/processed
 
 EXPOSE 8000
 
