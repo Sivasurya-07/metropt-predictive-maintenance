@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:alpine
+    container_name: metropt_redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  inference_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: metropt_inference_api
+    ports:
+      - "8000:8000"
+    command: gunicorn src.api.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
+    environment:
+      - REDIS_URL=redis://redis:6379
+    restart: always
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  replay_engine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: metropt_replay_engine
+    command: python -m src.streaming.replay_engine
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - API_URL=http://inference_api:8000
+    depends_on:
+      - inference_api
+      - redis
+    restart: on-failure
+

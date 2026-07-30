@@ -1,0 +1,24 @@
+stages:
+  acquire_data:
+    cmd: python -m src.data.loader
+    outs:
+      - data/raw/metropt_3_dataset.csv
+
+  engineer_features:
+    cmd: python -m src.data.features
+    deps:
+      - data/raw/metropt_3_dataset.csv
+      - src/data/features.py
+      - src/data/labeling.py
+    outs:
+      - data/features/metropt_features.parquet
+
+  train_models:
+    cmd: python scratch/verify_pipeline.py
+    deps:
+      - data/raw/metropt_3_dataset.csv
+      - src/models/lightgbm_model.py
+      - src/models/ensemble.py
+      - src/models/anomaly.py
+    outs:
+      - models/ensemble_4h.pkl
