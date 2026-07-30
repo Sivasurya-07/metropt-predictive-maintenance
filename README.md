@@ -42,13 +42,13 @@ graph TD
     F[📈 SHAP Explainer Engine]:::model
 
     %% Connections
-    A -- "Raw Telemetry JSON\n(HTTP/MQTT)" --> B
-    B -- "Push/Fetch Window" --> C
-    B -- "Feature Vector" --> D
-    D -- "Probability (2h, 4h, 8h)" --> B
-    D -- "Model weights" --> F
-    F -- "Top Features (Attributions)" --> B
-    B -- "WebSocket Broadcast" --> E
+    A -->|Raw Telemetry JSON<br/>HTTP/MQTT| B
+    B -->|Push/Fetch Window| C
+    B -->|Feature Vector| D
+    D -->|Probability 2h, 4h, 8h| B
+    B -->|Model + Feature Vector| F
+    F -->|Top Features Attributions| B
+    B -->|WebSocket Broadcast| E
 ```
 
 ### 🔹 Core Components
