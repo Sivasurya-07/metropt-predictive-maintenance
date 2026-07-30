@@ -34,4 +34,4 @@ RUN mkdir -p data/raw data/processed
 EXPOSE 8000
 
 # Run with Gunicorn using Uvicorn workers for production scaling
-CMD ["gunicorn", "src.api.main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000"]
+CMD gunicorn src.api.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:${PORT:-8000}
