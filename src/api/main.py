@@ -76,7 +76,7 @@ app.add_api_websocket_route("/ws/alerts/", websocket_alerts)
 
 
 # ─── Runtime Diagnostic (proves what code is deployed) ────────────────────────
-BUILD_ID = "2026-07-31T23:05-ws-debug"
+BUILD_ID = "2026-07-31T23:20-direct-ws"
 
 @app.get("/debug/routes", tags=["Debug"])
 async def debug_routes():
