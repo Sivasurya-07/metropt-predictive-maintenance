@@ -28,13 +28,22 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
+      let pingInterval: any = null;
+
       ws.onopen = () => {
         console.log("[WebSocket] Connected to APU Telemetry Stream");
         setConnectionStatus(true);
+        // Send a ping every 15 seconds to keep Railway connection alive
+        pingInterval = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send("ping");
+          }
+        }, 15000);
       };
 
       ws.onmessage = (event) => {
         try {
+          if (event.data === "pong") return; // Ignore ping/pong keepalives
           const data = JSON.parse(event.data);
           setTelemetry(data);
         } catch (error) {
@@ -43,12 +52,14 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       };
 
       ws.onclose = () => {
+        if (pingInterval) clearInterval(pingInterval);
         console.warn("[WebSocket] Disconnected. Reconnecting in 3s...");
         setConnectionStatus(false);
         setTimeout(connect, 3000);
       };
 
       ws.onerror = (error) => {
+        if (pingInterval) clearInterval(pingInterval);
         console.error("[WebSocket] Error:", error);
         ws.close();
       };
