@@ -106,6 +106,12 @@ async def debug_routes():
                 "methods": list(getattr(r, 'methods', [])) if getattr(r, 'methods', None) else None,
             })
 
+    return {
+        "build_id": BUILD_ID,
+        "router_routes": router_routes,
+        "app_routes": app_routes,
+    }
+
 @app.get("/debug/headers", tags=["Debug"])
 async def debug_headers(request: Request):
     """Inspects incoming headers passed by Railway proxy."""
