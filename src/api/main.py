@@ -7,7 +7,7 @@ Docs: available at /docs and /redoc.
 """
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.routes import router
@@ -103,10 +103,14 @@ async def debug_routes():
                 "methods": list(getattr(r, 'methods', [])) if getattr(r, 'methods', None) else None,
             })
 
+@app.get("/debug/headers", tags=["Debug"])
+async def debug_headers(request: Request):
+    """Inspects incoming headers passed by Railway proxy."""
     return {
-        "build_id": BUILD_ID,
-        "router_routes": router_routes,
-        "app_routes": app_routes,
+        "headers": dict(request.headers),
+        "url": str(request.url),
+        "base_url": str(request.base_url),
+        "client": request.client.host if request.client else None,
     }
 
 
