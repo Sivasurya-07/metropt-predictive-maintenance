@@ -154,6 +154,13 @@ async def predict(request: PredictionRequest):
     top_features = []
     subsystem_shap = {"Compressor": 0.0, "Reservoir": 0.0, "Motor": 0.0, "Valves": 0.0}
     narrative = "The APU operates within normal parameters."
+    
+    # Align features exactly to what the model expects to prevent LightGBM fatal shape warnings
+    if model is not None:
+        num_features = model.lgbm.model.num_feature()
+        if X.shape[1] > num_features:
+            X = X[:, :num_features]
+            feature_names = feature_names[:num_features]
 
     for h in horizons_to_run:
         if model is not None:
@@ -192,15 +199,18 @@ async def predict(request: PredictionRequest):
         try:
             from src.explain.shap_explainer import APUExplainer
             from src.explain.narrative import generate_narrative_explanation
+            
             explainer = APUExplainer(feature_names=feature_names)
             shap_list = explainer.explain_lightgbm(model.lgbm, X[:1])
+            
             top_features = [
                 {fname: round(float(fval), 5)}
                 for fname, fval in shap_list[:5]
             ]
             subsystem_shap = _aggregate_subsystem_shap(shap_list)
             narrative = generate_narrative_explanation(shap_list[:5])
-        except Exception:
+        except Exception as e:
+            print(f"SHAP Error: {e}")
             top_features = []
             narrative = "The APU operates within normal parameters."
 
