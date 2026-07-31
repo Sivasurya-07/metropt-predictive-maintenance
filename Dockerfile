@@ -31,7 +31,8 @@ COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
 RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt
 
-# Copy project source code
+# Copy project source code (ARG busts cache so Railway always picks up latest)
+ARG CACHEBUST=1
 COPY src/ ./src/
 COPY models/ ./models/
 RUN mkdir -p data/raw data/processed
