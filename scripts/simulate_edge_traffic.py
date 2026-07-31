@@ -4,7 +4,7 @@ import math
 from datetime import datetime, timezone
 import random
 
-API_URL = "http://localhost:8000/predict"
+API_URL = "https://web-production-c421a.up.railway.app/predict"
 
 def generate_telemetry(t_step: int):
     # Simulate somewhat realistic fluctuating sine wave data for pressure sensors

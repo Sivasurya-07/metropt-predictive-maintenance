@@ -16,7 +16,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     } else if (process.env.NEXT_PUBLIC_API_URL) {
       try {
         const url = new URL(process.env.NEXT_PUBLIC_API_URL);
-        const protocol = url.protocol === "https:" ? "wss:" : "ws:";
+        const protocol = (url.protocol === "https:" || url.protocol === "wss:") ? "wss:" : "ws:";
         wsUrl = `${protocol}//${url.host}/ws/alerts`;
       } catch (e) {
         console.error("Failed to parse NEXT_PUBLIC_API_URL:", e);
