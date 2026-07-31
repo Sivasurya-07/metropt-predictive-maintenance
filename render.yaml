@@ -1,7 +1,7 @@
 services:
   - type: web
     name: metropt-predictive-maintenance
-    env: docker
+    runtime: docker
     plan: free
     region: ohio
     envVars:
@@ -17,3 +17,18 @@ services:
     region: ohio
     maxmemoryPolicy: allkeys-lru
     ipAllowList: []
+
+  - type: web
+    name: metropt-dashboard
+    runtime: static
+    plan: free
+    region: ohio
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./out
+    rootDir: frontend
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: metropt-predictive-maintenance
+          property: url
