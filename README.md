@@ -103,12 +103,13 @@ python scripts/simulate_edge_traffic.py --speed 5.0
 
 ---
 
-## 🚢 Deployment (Railway)
+## 🚢 Deployment (Render)
 
-This repository is pre-configured for instant deployment on **[Railway.app](https://railway.app/)**. 
-1. Create a new Project in Railway from this GitHub Repository.
-2. Provision a **Redis** plugin within the Railway project (it will automatically inject `REDIS_URL`).
-3. Railway will detect `railway.json`, build the `Dockerfile`, and deploy the service automatically.
+This repository is pre-configured for instant deployment on **[Render](https://render.com/)** using Infrastructure-as-Code (Blueprints). 
+1. Push this repository to your GitHub account.
+2. Go to your Render Dashboard -> **New** -> **Blueprint**.
+3. Connect your GitHub repository.
+4. Render will read `render.yaml` and automatically provision both the **Web Service** (Docker) and the **Redis Database**, linking them securely via the `REDIS_URL` environment variable.
 
 ---
 

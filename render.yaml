@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: metropt-predictive-maintenance
+    env: docker
+    plan: free
+    region: ohio
+    dockerCommand: sh -c 'gunicorn src.api.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT'
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: metropt-redis
+          property: connectionString
+  
+  - type: redis
+    name: metropt-redis
+    plan: free
+    region: ohio
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
