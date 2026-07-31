@@ -14,17 +14,22 @@ COPY requirements.txt ./
 
 # Install wheels
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+    pip wheel --no-cache-dir --wheel-dir /app/wheels -r requirements.txt
 
 # Final runtime image
 FROM python:3.11-slim AS runner
 
 WORKDIR /app
 
+# Install system dependencies required for ML libraries (OpenMP)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install runtime dependencies only
 COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
-RUN pip install --no-cache /wheels/*
+RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt
 
 # Copy project source code
 COPY src/ ./src/
