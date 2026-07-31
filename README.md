@@ -132,4 +132,35 @@ This model was trained on the **Metro.PT Dataset** (2022).
 > *Veloso, B., et al. "Predictive Maintenance of Train APU Compressor using Machine Learning".*
 
 ---
+---
+
+## 🛠 Troubleshooting & Production Case Studies
+
+### ⚠️ Incident: Dashboard Stuck on "Connecting to APU Telemetry Stream..." & WebSocket Offline
+
+<div align="center">
+  <img src="docs/websocket_offline_issue.png" alt="WebSocket Offline Incident" width="800" style="border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);">
+</div>
+
+#### **Symptom**
+When opening the production dashboard on Vercel, the UI displayed **"WebSocket (Offline)"** and remained stuck on *"Connecting to APU telemetry stream..."*. No live charts or AI risk scores were rendering despite the backend `/health` endpoint returning `200 OK`.
+
+#### **Root Cause Analysis**
+1. **Missing WebSocket Protocol Library in Docker Build**:
+   `requirements.txt` listed `uvicorn` but omitted `websockets`. In local environments, `websockets` was installed in the developer virtual environment. However, inside the production Docker container, Uvicorn started with `--ws none` (WebSocket protocol support disabled). Any `wss://` handshake request was treated as a plain HTTP request, causing Starlette to return `HTTP 404 Not Found`.
+2. **Reverse Proxy Scheme & Header Truncation**:
+   Railway's edge proxy forwards `X-Forwarded-Proto` and `X-Forwarded-For` headers. Without explicit proxy header middleware, Uvicorn compared incoming requests against internal container HTTP bindings (`http://0.0.0.0:8000`) rather than the external HTTPS/WSS scheme (`wss://web-production-c421a.up.railway.app`), leading to protocol rejection.
+3. **Idle TCP Connection Drop**:
+   Cloud proxies close idle WebSocket connections after 30 seconds of silence, causing the UI connection status to repeatedly cycle between online and offline.
+4. **Uncaught Date-fns Hover Exception**:
+   Hovering mouse cursors over `TelemetryChart.tsx` passed `NaN` or unparsed timestamp values into `date-fns.format()`, throwing an uncaught `RangeError` that triggered the Next.js React Error Boundary.
+
+#### **Resolution**
+- **Dependency Fix**: Added `websockets>=12.0` to `requirements.txt` to enable full ASGI WebSocket protocol handling in the production Docker image.
+- **Proxy Configuration**: Added `ProxyHeadersMiddleware` to `main.py` and appended `--proxy-headers --forwarded-allow-ips="*"` to Uvicorn in the `Dockerfile`.
+- **Heartbeat Mechanism**: Added a 15-second client-side heartbeat ping interval (`ws.send("ping")`) in `WebSocketProvider.tsx` to prevent idle proxy timeouts.
+- **Safe Date Formatting**: Implemented a `safeFormatTime()` utility with `isValid()` validation in `TelemetryChart.tsx` to handle unparsed dates gracefully.
+
+---
+
 <p align="center">Built with 💻 and 🚂 for reliable public transport systems.</p>
