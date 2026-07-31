@@ -43,4 +43,4 @@ ENV OPENBLAS_NUM_THREADS=1
 EXPOSE 8000
 
 # Run with Uvicorn directly (single worker for Railway free tier memory)
-CMD uvicorn src.api.main:app --host 0.0.0.0 --port ${PORT:-8000}
+CMD uvicorn src.api.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips="*"
