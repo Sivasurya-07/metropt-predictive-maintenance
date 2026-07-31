@@ -136,7 +136,7 @@ This model was trained on the **Metro.PT Dataset** (2022).
 
 ## 🛠 Troubleshooting & Production Case Studies
 
-### ⚠️ Incident: Dashboard Stuck on "Connecting to APU Telemetry Stream..." & WebSocket Offline
+### ⚠️ Incident 1: Dashboard Stuck on "Connecting to APU Telemetry Stream..." & WebSocket Offline
 
 <div align="center">
   <img src="docs/websocket_offline_issue.png" alt="WebSocket Offline Incident" width="800" style="border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);">
@@ -152,14 +152,28 @@ When opening the production dashboard on Vercel, the UI displayed **"WebSocket (
    Railway's edge proxy forwards `X-Forwarded-Proto` and `X-Forwarded-For` headers. Without explicit proxy header middleware, Uvicorn compared incoming requests against internal container HTTP bindings (`http://0.0.0.0:8000`) rather than the external HTTPS/WSS scheme (`wss://web-production-c421a.up.railway.app`), leading to protocol rejection.
 3. **Idle TCP Connection Drop**:
    Cloud proxies close idle WebSocket connections after 30 seconds of silence, causing the UI connection status to repeatedly cycle between online and offline.
-4. **Uncaught Date-fns Hover Exception**:
-   Hovering mouse cursors over `TelemetryChart.tsx` passed `NaN` or unparsed timestamp values into `date-fns.format()`, throwing an uncaught `RangeError` that triggered the Next.js React Error Boundary.
 
 #### **Resolution**
 - **Dependency Fix**: Added `websockets>=12.0` to `requirements.txt` to enable full ASGI WebSocket protocol handling in the production Docker image.
 - **Proxy Configuration**: Added `ProxyHeadersMiddleware` to `main.py` and appended `--proxy-headers --forwarded-allow-ips="*"` to Uvicorn in the `Dockerfile`.
 - **Heartbeat Mechanism**: Added a 15-second client-side heartbeat ping interval (`ws.send("ping")`) in `WebSocketProvider.tsx` to prevent idle proxy timeouts.
-- **Safe Date Formatting**: Implemented a `safeFormatTime()` utility with `isValid()` validation in `TelemetryChart.tsx` to handle unparsed dates gracefully.
+
+---
+
+### ⚠️ Incident 2: "This page couldn't load" React Crash on Chart Hover
+
+<div align="center">
+  <img src="docs/page_crash_issue.png" alt="React Error Boundary Page Crash" width="800" style="border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);">
+</div>
+
+#### **Symptom**
+Moving the mouse cursor over or near the live telemetry chart caused the dashboard to immediately crash with a black screen displaying **"This page couldn't load"**.
+
+#### **Root Cause Analysis**
+Hovering over Recharts passed `NaN` or unparsed timestamps into `date-fns.format()`. Passing invalid dates into `date-fns` threw an unhandled JavaScript `RangeError: Invalid time value`, which crashed React's render tree and triggered Next.js's Error Boundary.
+
+#### **Resolution**
+Implemented a `safeFormatTime()` utility with `isValid()` validation in `TelemetryChart.tsx` to safely handle unparsed dates without throwing errors.
 
 ---
 
