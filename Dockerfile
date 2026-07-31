@@ -9,12 +9,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy dependency specifications (we use the slimmed production requirements)
+# Copy dependency specifications
 COPY requirements.txt ./
 
-# Install wheels
+# Install wheels (Install CPU-only PyTorch to shrink image from 5GB to 1GB)
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip wheel --no-cache-dir --wheel-dir /app/wheels -r requirements.txt
+    pip wheel --no-cache-dir --wheel-dir /app/wheels --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt
 
 # Final runtime image
 FROM python:3.11-slim AS runner
@@ -35,12 +35,13 @@ RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.t
 COPY src/ ./src/
 COPY models/ ./models/
 RUN mkdir -p data/raw data/processed
-# Limit threads to prevent deadlocks on strict 0.1 CPU limits (Render Free Tier)
+
+# Limit threads to prevent deadlocks on strict CPU limits
 ENV OMP_NUM_THREADS=1
 ENV MKL_NUM_THREADS=1
 ENV OPENBLAS_NUM_THREADS=1
 
 EXPOSE 8000
 
-# Run with raw Uvicorn to prevent timeouts. Render automatically detects the open 8000 port.
-CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run with Uvicorn. Use sh -c form to allow Railway/Render to inject the random $PORT variable.
+CMD uvicorn src.api.main:app --host 0.0.0.0 --port ${PORT:-8000}
