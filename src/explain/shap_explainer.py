@@ -1,11 +1,16 @@
 import numpy as np
-import torch
 import shap
-from captum.attr import GradientShap
 from typing import Dict, List, Tuple
 from src.models.lightgbm_model import LightGBMModel
 from src.models.cnn_model import CNN1DModel
 from src import config
+
+try:
+    import torch
+    from captum.attr import GradientShap
+    CAPTUM_AVAILABLE = True
+except ImportError:
+    CAPTUM_AVAILABLE = False
 
 class APUExplainer:
     """
@@ -58,6 +63,10 @@ class APUExplainer:
         Returns:
           - Sorted list of (feature_name, mean_attribution) tuples representing feature importance across the window.
         """
+        if not CAPTUM_AVAILABLE:
+            print("Captum is not available. Skipping CNN SHAP explanation.")
+            return []
+            
         if cnn_model.lightning_module is None:
             raise ValueError("CNN model must be fitted first.")
             

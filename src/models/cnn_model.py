@@ -1,14 +1,33 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils.data import Dataset, DataLoader
-import pytorch_lightning as pl
 import numpy as np
 import pickle
 from pathlib import Path
 from typing import Dict, List, Tuple
 from src.models.base import BaseModel
 from src import config
+
+try:
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+    from torch.utils.data import Dataset, DataLoader
+    import pytorch_lightning as pl
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
+    
+    # Create dummy classes for inheritance when PyTorch is not available
+    class DummyModule:
+        pass
+    class DummyDataset:
+        pass
+    class DummyLightningModule:
+        pass
+
+    # Provide these as stand-ins so the file can be parsed
+    import types
+    nn = types.SimpleNamespace(Module=DummyModule)
+    Dataset = DummyDataset
+    pl = types.SimpleNamespace(LightningModule=DummyLightningModule)
 
 class APUSlidingWindowDataset(Dataset):
     """
