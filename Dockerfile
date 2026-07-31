@@ -38,5 +38,5 @@ RUN mkdir -p data/raw data/processed
 
 EXPOSE 8000
 
-# Run with Gunicorn using Uvicorn workers (1 worker for 512MB Free Tier memory limit)
-CMD gunicorn src.api.main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:${PORT:-8000}
+# Run with raw Uvicorn to prevent Gunicorn's 30s boot timeout from killing the worker on slow free tier CPUs
+CMD uvicorn src.api.main:app --host 0.0.0.0 --port ${PORT:-8000}
