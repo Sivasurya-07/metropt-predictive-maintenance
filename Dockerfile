@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy dependency specifications
 COPY requirements.txt ./
 
-# Install wheels (Install CPU-only PyTorch to shrink image from 5GB to 1GB)
+# Install wheels (CPU-only builds to keep image small)
 RUN pip install --no-cache-dir --upgrade pip && \
     pip wheel --no-cache-dir --wheel-dir /app/wheels --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt
 
@@ -31,10 +31,8 @@ COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
 RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt
 
-# Copy project source code (ARG busts cache so Railway always picks up latest)
-ARG CACHEBUST=1
-COPY src/ ./src/
-COPY models/ ./models/
+# Copy ALL project files at once to prevent stale cache layers
+COPY . .
 RUN mkdir -p data/raw data/processed
 
 # Limit threads to prevent deadlocks on strict CPU limits
@@ -44,5 +42,5 @@ ENV OPENBLAS_NUM_THREADS=1
 
 EXPOSE 8000
 
-# Run with Uvicorn. Use sh -c form to allow Railway/Render to inject the random $PORT variable.
+# Run with Uvicorn directly (single worker for Railway free tier memory)
 CMD uvicorn src.api.main:app --host 0.0.0.0 --port ${PORT:-8000}
