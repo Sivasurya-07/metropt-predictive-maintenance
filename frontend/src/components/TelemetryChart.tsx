@@ -59,7 +59,7 @@ export function TelemetryChart() {
               borderRadius: "8px",
               color: "hsl(var(--foreground))"
             }}
-            labelFormatter={(label) => format(new Date(label), "HH:mm:ss")}
+            labelFormatter={(label: any) => format(new Date(String(label)), "HH:mm:ss")}
             itemStyle={{ fontSize: 13 }}
             labelStyle={{ fontSize: 13, marginBottom: "4px", color: "hsl(var(--muted-foreground))" }}
           />
