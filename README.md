@@ -163,7 +163,7 @@ When opening the production dashboard on Vercel, the UI displayed **"WebSocket (
 ### ⚠️ Incident 2: "This page couldn't load" React Crash on Chart Hover
 
 <div align="center">
-  <img src="docs/page_crash_issue.png" alt="React Error Boundary Page Crash" width="800" style="border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);">
+  <img src="docs/page_crash_cropped.png" alt="React Error Boundary Page Crash" width="800" style="border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);">
 </div>
 
 #### **Symptom**
