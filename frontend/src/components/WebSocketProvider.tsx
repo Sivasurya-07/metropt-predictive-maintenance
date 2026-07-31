@@ -9,8 +9,9 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    // In production, use wss:// and the correct backend URL
-    let wsUrl = "ws://localhost:8000/ws/alerts";
+    // Determine the WebSocket URL for the Railway backend
+    const RAILWAY_BACKEND = "wss://web-production-c421a.up.railway.app/ws/alerts";
+    let wsUrl = RAILWAY_BACKEND;
     if (process.env.NEXT_PUBLIC_WS_URL) {
       wsUrl = process.env.NEXT_PUBLIC_WS_URL;
     } else if (process.env.NEXT_PUBLIC_API_URL) {

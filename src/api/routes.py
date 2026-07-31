@@ -214,9 +214,9 @@ async def predict(request: PredictionRequest):
             top_features = []
             narrative = "The APU operates within normal parameters."
 
-    # Broadcast to WebSocket clients EVERY time we get a reading so the UI updates
+    # Broadcast to WebSocket clients via Redis pub/sub EVERY time we get a reading
     ts = datetime.now(timezone.utc).isoformat()
-    if manager.active and len(raw_dicts) > 0:
+    if len(raw_dicts) > 0:
         alert = AlertPayload(
             timestamp=ts,
             sensor_readings=raw_dicts[0],  # the most recent reading
