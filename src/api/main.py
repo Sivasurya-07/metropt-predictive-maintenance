@@ -69,6 +69,12 @@ def create_app() -> FastAPI:
 
 app = create_app()
 
+# Import websocket handler and register directly on app for bulletproof routing
+from src.api.routes import websocket_alerts
+app.add_api_websocket_route("/ws/alerts", websocket_alerts)
+app.add_api_websocket_route("/ws/alerts/", websocket_alerts)
+
+
 # ─── Runtime Diagnostic (proves what code is deployed) ────────────────────────
 BUILD_ID = "2026-07-31T23:05-ws-debug"
 
