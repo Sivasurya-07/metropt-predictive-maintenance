@@ -58,6 +58,10 @@ class PredictionResponse(BaseModel):
         default_factory=list,
         description="Top SHAP feature attributions"
     )
+    subsystem_shap: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Aggregated SHAP impact per APU physical subsystem"
+    )
     narrative: str = Field(
         default="",
         description="Natural language diagnostic summary"
@@ -72,6 +76,7 @@ class AlertPayload(BaseModel):
     predictions: List[HorizonPrediction]
     narrative: str
     top_features: List[Dict[str, float]]
+    subsystem_shap: Dict[str, float]
 
 
 class HealthResponse(BaseModel):

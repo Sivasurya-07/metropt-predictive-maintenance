@@ -91,6 +91,36 @@ def _get_alert_level(prob: float, horizon: str) -> str:
         return "warning"
     return "normal"
 
+def _aggregate_subsystem_shap(shap_list: List[tuple]) -> dict:
+    """Aggregates raw SHAP feature importances into physical subsystems."""
+    subsystems = {
+        "Compressor": 0.0,
+        "Reservoir": 0.0,
+        "Motor": 0.0,
+        "Valves": 0.0
+    }
+    
+    total_shap = 0.0
+    for fname, fval in shap_list:
+        val = abs(fval)
+        total_shap += val
+        lower_name = fname.lower()
+        
+        if any(k in lower_name for k in ["tp2", "comp", "oil", "h1", "pressure_diff"]):
+            subsystems["Compressor"] += val
+        elif any(k in lower_name for k in ["tp3", "reservoir"]):
+            subsystems["Reservoir"] += val
+        elif "motor" in lower_name:
+            subsystems["Motor"] += val
+        elif any(k in lower_name for k in ["dv_", "towers", "mpg", "lps", "pressure_switch", "flowmeter"]):
+            subsystems["Valves"] += val
+            
+    # Normalize to percentages if total > 0
+    if total_shap > 0:
+        for k in subsystems:
+            subsystems[k] = round((subsystems[k] / total_shap) * 100, 1)
+            
+    return subsystems
 
 # ─── Routes ──────────────────────────────────────────────────────────────────
 
@@ -122,6 +152,7 @@ async def predict(request: PredictionRequest):
 
     horizon_predictions = []
     top_features = []
+    subsystem_shap = {"Compressor": 0.0, "Reservoir": 0.0, "Motor": 0.0, "Valves": 0.0}
     narrative = "The APU operates within normal parameters."
 
     for h in horizons_to_run:
@@ -167,6 +198,7 @@ async def predict(request: PredictionRequest):
                 {fname: round(float(fval), 5)}
                 for fname, fval in shap_list[:5]
             ]
+            subsystem_shap = _aggregate_subsystem_shap(shap_list)
             narrative = generate_narrative_explanation(shap_list[:5])
         except Exception:
             top_features = []
@@ -181,12 +213,14 @@ async def predict(request: PredictionRequest):
             predictions=horizon_predictions,
             narrative=narrative,
             top_features=top_features,
+            subsystem_shap=subsystem_shap,
         )
         asyncio.create_task(manager.broadcast(alert.model_dump()))
 
     return PredictionResponse(
         horizons=horizon_predictions,
         top_features=top_features,
+        subsystem_shap=subsystem_shap,
         narrative=narrative,
         timestamp=ts,
     )
