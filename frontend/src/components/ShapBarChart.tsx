@@ -65,7 +65,7 @@ export function ShapBarChart() {
             <Tooltip 
               cursor={{ fill: 'transparent' }}
               contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
-              formatter={(val: number) => [`${val.toFixed(1)}%`, 'Contribution']}
+              formatter={(val: any) => [`${Number(val).toFixed(1)}%`, 'Contribution']}
             />
             <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
               {data.map((entry, index) => (
