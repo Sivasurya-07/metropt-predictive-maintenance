@@ -69,6 +69,40 @@ def create_app() -> FastAPI:
 
 app = create_app()
 
+# ─── Runtime Diagnostic (proves what code is deployed) ────────────────────────
+BUILD_ID = "2026-07-31T23:05-ws-debug"
+
+@app.get("/debug/routes", tags=["Debug"])
+async def debug_routes():
+    """Lists every route registered on the running application — including the included router."""
+    from src.api.routes import router as _router
+    
+    # Enumerate the router's own routes (the authoritative source)
+    router_routes = []
+    for r in _router.routes:
+        router_routes.append({
+            "type": type(r).__name__,
+            "path": getattr(r, 'path', '?'),
+            "methods": list(getattr(r, 'methods', [])) if getattr(r, 'methods', None) else "websocket",
+        })
+
+    # Enumerate app-level routes
+    app_routes = []
+    for r in app.routes:
+        rtype = type(r).__name__
+        if not hasattr(r, 'routes'):
+            app_routes.append({
+                "type": rtype,
+                "path": getattr(r, 'path', '?'),
+                "methods": list(getattr(r, 'methods', [])) if getattr(r, 'methods', None) else None,
+            })
+
+    return {
+        "build_id": BUILD_ID,
+        "router_routes": router_routes,
+        "app_routes": app_routes,
+    }
+
 
 if __name__ == "__main__":
     import uvicorn
