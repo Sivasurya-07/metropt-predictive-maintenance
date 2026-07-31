@@ -25,6 +25,7 @@ except ImportError:
 
     # Provide these as stand-ins so the file can be parsed
     import types
+    torch = types.SimpleNamespace(Tensor=types.SimpleNamespace)
     nn = types.SimpleNamespace(Module=DummyModule)
     Dataset = DummyDataset
     pl = types.SimpleNamespace(LightningModule=DummyLightningModule)
