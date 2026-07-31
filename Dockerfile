@@ -35,8 +35,12 @@ RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.t
 COPY src/ ./src/
 COPY models/ ./models/
 RUN mkdir -p data/raw data/processed
+# Limit threads to prevent deadlocks on strict 0.1 CPU limits (Render Free Tier)
+ENV OMP_NUM_THREADS=1
+ENV MKL_NUM_THREADS=1
+ENV OPENBLAS_NUM_THREADS=1
 
 EXPOSE 8000
 
-# Run with raw Uvicorn to prevent Gunicorn's 30s boot timeout from killing the worker on slow free tier CPUs
-CMD uvicorn src.api.main:app --host 0.0.0.0 --port ${PORT:-8000}
+# Run with raw Uvicorn to prevent timeouts. Render automatically detects the open 8000 port.
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
