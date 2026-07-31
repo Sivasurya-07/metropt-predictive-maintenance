@@ -14,3 +14,6 @@ shap>=0.43.0
 torch>=2.1.0
 pytorch-lightning>=2.1.0
 optuna>=3.4.0
+captum>=0.7.0
+pandera>=0.18.0
+matplotlib>=3.8.0
