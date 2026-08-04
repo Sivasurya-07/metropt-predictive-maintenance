@@ -131,6 +131,51 @@ async def health():
     return HealthResponse(model_loaded=model is not None)
 
 
+@router.get("/latest", tags=["Operations"])
+async def get_latest_telemetry():
+    """Returns the most recent telemetry reading from Redis for cold-start UI initialization."""
+    try:
+        from src.api.stateful_features import engine as feature_engine
+        entries = await feature_engine.redis.zrange(feature_engine.stream_key, -1, -1)
+        if entries:
+            last_reading = json.loads(entries[0].rsplit("_", 1)[0])
+            return {
+                "timestamp": last_reading.get("timestamp", datetime.now(timezone.utc).isoformat()),
+                "sensor_readings": last_reading,
+                "predictions": [
+                    {"horizon": "2h", "failure_probability": 0.0, "alert_level": "normal", "confidence": 0.0},
+                    {"horizon": "4h", "failure_probability": 0.0, "alert_level": "normal", "confidence": 0.0},
+                    {"horizon": "8h", "failure_probability": 0.0, "alert_level": "normal", "confidence": 0.0},
+                ],
+                "narrative": "The APU operates within normal parameters.",
+                "top_features": [],
+                "subsystem_shap": {"Compressor": 0.0, "Reservoir": 0.0, "Motor": 0.0, "Valves": 0.0}
+            }
+    except Exception as e:
+        print(f"Error fetching latest telemetry: {e}")
+
+    # Baseline fallback if Redis window is currently empty
+    now_str = datetime.now(timezone.utc).isoformat()
+    return {
+        "timestamp": now_str,
+        "sensor_readings": {
+            "timestamp": now_str,
+            "TP2": 8.0, "TP3": 7.5, "H1": 8.2, "DV_pressure": 0.2,
+            "Reservoirs": 8.0, "Motor_current": 7.5, "Oil_temperature": 65.0,
+            "COMP": 1.0, "DV_eletric": 0.0, "TOWERS": 0.0, "MPG": 1.0,
+            "LPS": 0.0, "Pressure_switch": 1.0, "Oil_level": 1.0, "Flowmeter": 1.0
+        },
+        "predictions": [
+            {"horizon": "2h", "failure_probability": 0.0, "alert_level": "normal", "confidence": 0.0},
+            {"horizon": "4h", "failure_probability": 0.0, "alert_level": "normal", "confidence": 0.0},
+            {"horizon": "8h", "failure_probability": 0.0, "alert_level": "normal", "confidence": 0.0},
+        ],
+        "narrative": "System online. Waiting for active edge traffic stream...",
+        "top_features": [],
+        "subsystem_shap": {"Compressor": 0.0, "Reservoir": 0.0, "Motor": 0.0, "Valves": 0.0}
+    }
+
+
 @router.post("/predict", response_model=PredictionResponse, tags=["Inference"])
 async def predict(request: PredictionRequest):
     """

@@ -24,6 +24,17 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       }
     }
     
+    // Initial fetch to populate UI before live stream arrives
+    const httpUrl = "https://web-production-c421a.up.railway.app/latest";
+    fetch(httpUrl)
+      .then((res) => res.json())
+      .then((initialData) => {
+        if (initialData && initialData.sensor_readings) {
+          setTelemetry(initialData);
+        }
+      })
+      .catch((err) => console.warn("[WebSocket] Failed initial /latest fetch:", err));
+
     const connect = () => {
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
