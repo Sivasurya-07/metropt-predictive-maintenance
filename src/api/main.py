@@ -26,12 +26,55 @@ async def parquet_flusher_loop():
         except Exception as e:
             print(f"[Archiver] Parquet flush failed: {e}")
 
+async def auto_telemetry_simulator_loop():
+    """Generates continuous background APU telemetry directly in the cloud 24/7."""
+    import math, random
+    from datetime import datetime, timezone
+    from src.api.schemas import PredictionRequest, SensorReading
+    from src.api.routes import predict
+    
+    t_step = 0
+    await asyncio.sleep(5) # Wait for model to load
+    print("[AutoSimulator] Starting 24/7 cloud telemetry stream...")
+    while True:
+        await asyncio.sleep(2) # Emit telemetry reading every 2 seconds
+        try:
+            base_tp2 = 8.0 + math.sin(t_step / 10.0) * 2.0 + random.uniform(-0.1, 0.1)
+            base_tp3 = 7.5 + math.cos(t_step / 15.0) * 1.5 + random.uniform(-0.1, 0.1)
+            base_h1 = 8.2 + math.sin(t_step / 8.0) * 1.0 + random.uniform(-0.1, 0.1)
+            
+            payload = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "TP2": base_tp2,
+                "TP3": base_tp3,
+                "H1": base_h1,
+                "DV_pressure": 0.2 + random.uniform(-0.05, 0.05),
+                "Reservoirs": 8.0 + random.uniform(-0.1, 0.1),
+                "Motor_current": 7.5 + math.sin(t_step / 20.0) * 0.5,
+                "Oil_temperature": 65.0 + math.sin(t_step / 30.0) * 5.0,
+                "COMP": 1.0 if t_step % 100 < 50 else 0.0,
+                "DV_eletric": 0.0,
+                "TOWERS": 0.0,
+                "MPG": 1.0,
+                "LPS": 0.0,
+                "Pressure_switch": 1.0,
+                "Oil_level": 1.0,
+                "Flowmeter": 1.0,
+            }
+            
+            req = PredictionRequest(readings=[SensorReading(**payload)], horizon="4h")
+            await predict(req)
+            t_step += 1
+        except Exception as e:
+            print(f"[AutoSimulator] Error generating telemetry: {e}")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Preloads the model and narrative generator at startup, and starts Redis listener."""
+    """Preloads the model and narrative generator at startup, and starts Redis listener + cloud simulator."""
     from src.api.routes import manager
     listener_task = asyncio.create_task(manager.start_listener())
     flusher_task = asyncio.create_task(parquet_flusher_loop())
+    simulator_task = asyncio.create_task(auto_telemetry_simulator_loop())
     
     print("[API] Loading ensemble model into memory...")
     get_ensemble_model()
@@ -39,6 +82,7 @@ async def lifespan(app: FastAPI):
     yield
     listener_task.cancel()
     flusher_task.cancel()
+    simulator_task.cancel()
     print("[API] Shutting down inference service.")
 
 
