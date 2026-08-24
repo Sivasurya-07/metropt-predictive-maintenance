@@ -276,12 +276,14 @@ def render_gauge(value, vmin, vmax, color, unit, label_icon, label_text):
         <div style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; color:#a1a1aa; text-transform:uppercase; letter-spacing:0.05em;">
             {label_icon} {label_text}
         </div>
-        <div style="position:relative; margin:8px auto 0 auto; width:220px; height:120px;">
-            <svg viewBox="60 5 180 90" width="220" height="100" style="display:block; margin:0 auto;">
-                <path d="{bg}" fill="#27272a"/>
-                <path d="{fl}" fill="{color}"/>
-            </svg>
-            <div style="position:absolute; bottom:0; width:100%; text-align:center;">
+        <div style="position:relative; width:100%; padding-top:8px;">
+            <div style="width:100%; text-align:center;">
+                <svg viewBox="65 0 170 95" width="70%" preserveAspectRatio="xMidYMid meet" style="display:inline-block;">
+                    <path d="{bg}" fill="#27272a"/>
+                    <path d="{fl}" fill="{color}"/>
+                </svg>
+            </div>
+            <div style="text-align:center; margin-top:-8px;">
                 <div style="font-size:30px; font-weight:900; color:#fafafa; letter-spacing:-0.05em; line-height:1;">{value}</div>
                 <div style="font-size:12px; font-weight:700; color:#a1a1aa; margin-top:2px;">{unit}</div>
             </div>
