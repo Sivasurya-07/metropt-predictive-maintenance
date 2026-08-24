@@ -121,6 +121,7 @@ temp_val = round(float(np.random.uniform(59.5, 62.0)), 1)
 current_val = round(float(np.random.uniform(7.6, 8.4)), 1)
 tp3_val = round(float(np.random.uniform(9.4, 9.9)), 1)
 h1_val = round(float(np.random.uniform(0.04, 0.06)), 3)
+dv_val = round(float(np.random.uniform(0.01, 0.05)), 2)
 latency_ms = int(np.random.uniform(18, 25))
 now_str = datetime.now().strftime("%I:%M:%S %p")
 
