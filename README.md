@@ -149,7 +149,7 @@ When opening the production dashboard on Vercel, the UI displayed **"WebSocket (
 1. **Missing WebSocket Protocol Library in Docker Build**:
    `requirements.txt` listed `uvicorn` but omitted `websockets`. In local environments, `websockets` was installed in the developer virtual environment. However, inside the production Docker container, Uvicorn started with `--ws none` (WebSocket protocol support disabled). Any `wss://` handshake request was treated as a plain HTTP request, causing Starlette to return `HTTP 404 Not Found`.
 2. **Reverse Proxy Scheme & Header Truncation**:
-   Railway's edge proxy forwards `X-Forwarded-Proto` and `X-Forwarded-For` headers. Without explicit proxy header middleware, Uvicorn compared incoming requests against internal container HTTP bindings (`http://0.0.0.0:8000`) rather than the external HTTPS/WSS scheme (`wss://web-production-c421a.up.railway.app`), leading to protocol rejection.
+   Proxy forwarding handles `X-Forwarded-Proto` headers when communicating with external HTTPS/WSS schemes (e.g. `https://metropt-predictive-maintenance.streamlit.app`), preventing protocol rejection.
 3. **Idle TCP Connection Drop**:
    Cloud proxies close idle WebSocket connections after 30 seconds of silence, causing the UI connection status to repeatedly cycle between online and offline.
 
