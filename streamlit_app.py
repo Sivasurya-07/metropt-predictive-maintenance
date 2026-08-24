@@ -86,6 +86,7 @@ st.markdown("""
         height: 6px;
         border-radius: 50%;
         background-color: #10b981;
+        display: inline-block;
     }
 
     /* Row Label Styles */
@@ -122,11 +123,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Top Title Bar & System Badges
-title_col, badges_col = st.columns([3, 2])
-
-with title_col:
-    st.markdown("""
-        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 12px;">
+st.html("""
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
             <div style="background: #1e293b; padding: 10px; border-radius: 12px; border: 1px solid #334155;">
                 <span style="font-size: 24px;">🛡️</span>
             </div>
@@ -135,20 +134,17 @@ with title_col:
                 <p style="margin:0; font-size: 14px; color: #94a3b8;">Real-time monitoring and AI diagnostics for railway Air Production Units.</p>
             </div>
         </div>
-    """, unsafe_allow_html=True)
-
-with badges_col:
-    st.markdown("""
-        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
+        <div style="display: flex; gap: 8px;">
             <span class="badge">⚡ Inference 21ms</span>
             <span class="badge"><span class="badge-dot"></span> Redis</span>
             <span class="badge"><span class="badge-dot"></span> WebSocket (Live)</span>
             <span class="badge">⚙️ Model v2.1</span>
         </div>
-    """, unsafe_allow_html=True)
+    </div>
+""")
 
 # Green Status Banner
-st.markdown("""
+st.html("""
     <div class="banner-normal">
         <div style="background-color: #059669; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px;">
             ✓
@@ -158,7 +154,7 @@ st.markdown("""
             <div class="banner-subtitle">All telemetry nominal. No immediate maintenance required.</div>
         </div>
     </div>
-""", unsafe_allow_html=True)
+""")
 
 # Generate Live Data Values
 np.random.seed(42)
@@ -191,25 +187,22 @@ def create_gauge(value: float, min_v: float, max_v: float, unit: str, color: str
 g_col1, g_col2, g_col3 = st.columns(3)
 
 with g_col1:
-    st.markdown('<div class="card-box"><div class="gauge-title">f PRESSURE</div>', unsafe_allow_html=True)
+    st.html('<div class="card-box"><div class="gauge-title">⚡ PRESSURE</div>')
     st.plotly_chart(create_gauge(pressure_val, 0, 15, "BAR", "#3b82f6"), use_container_width=True, key="gauge_p")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 with g_col2:
-    st.markdown('<div class="card-box"><div class="gauge-title">🌡️ TEMPERATURE</div>', unsafe_allow_html=True)
+    st.html('<div class="card-box"><div class="gauge-title">🌡️ TEMPERATURE</div>')
     st.plotly_chart(create_gauge(temp_val, 0, 100, "°C", "#ef4444"), use_container_width=True, key="gauge_t")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 with g_col3:
-    st.markdown('<div class="card-box"><div class="gauge-title">⚡ MOTOR CURRENT</div>', unsafe_allow_html=True)
+    st.html('<div class="card-box"><div class="gauge-title">⚡ MOTOR CURRENT</div>')
     st.plotly_chart(create_gauge(current_val, 0, 20, "AMPS", "#f59e0b"), use_container_width=True, key="gauge_c")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # Row 2: Schematic + AI Predictive Analysis
 mid_col1, mid_col2 = st.columns([3, 2])
 
 with mid_col1:
-    st.markdown("""
+    st.html("""
         <div class="card-box">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <div style="font-weight: 700; font-size: 15px; color: #f3f4f6;">⚙️ Interactive APU Schematic</div>
@@ -219,7 +212,6 @@ with mid_col1:
             
             <div style="display: flex; gap: 30px; align-items: center;">
                 <div style="flex: 2;">
-                    <!-- Diagram -->
                     <div style="display: flex; justify-content: center; margin-bottom: 20px;">
                         <div class="schematic-box" style="width: 140px;">Reservoir</div>
                     </div>
@@ -244,10 +236,10 @@ with mid_col1:
                 </div>
             </div>
         </div>
-    """, unsafe_allow_html=True)
+    """)
 
 with mid_col2:
-    st.markdown("""
+    st.html("""
         <div class="card-box">
             <div style="font-weight: 700; font-size: 15px; color: #f3f4f6; margin-bottom: 16px;">🧠 AI Predictive Analysis</div>
             
@@ -281,18 +273,18 @@ with mid_col2:
                 </div>
             </div>
         </div>
-    """, unsafe_allow_html=True)
+    """)
 
 # Row 3: Live Sensor Telemetry Line Chart + Top AI Contributors
 bot_col1, bot_col2 = st.columns([3, 2])
 
 with bot_col1:
-    st.markdown("""
-        <div class="card-box">
+    st.html("""
+        <div class="card-box" style="margin-bottom: 0px;">
             <div style="font-weight: 700; font-size: 15px; color: #f3f4f6;">📉 Live Sensor Telemetry</div>
-            <div style="font-size: 12px; color: #9ca3af; margin-bottom: 12px;">Raw time-series data from the edge device.</div>
+            <div style="font-size: 12px; color: #9ca3af;">Raw time-series data from the edge device.</div>
         </div>
-    """, unsafe_allow_html=True)
+    """)
     
     # Generate Multi-Colored Line Chart
     t_steps = pd.date_range("00:01:35", periods=60, freq="1s")
@@ -321,7 +313,7 @@ with bot_col1:
     st.plotly_chart(fig_lines, use_container_width=True, key="live_lines")
 
 with bot_col2:
-    st.markdown("""
+    st.html("""
         <div class="card-box">
             <div style="font-weight: 700; font-size: 15px; color: #f3f4f6;">📊 Top AI Contributors</div>
             <div style="font-size: 12px; color: #9ca3af; margin-bottom: 16px;">The physical sensors driving the AI's current risk assessment.</div>
@@ -339,11 +331,11 @@ with bot_col2:
                 <span style="font-size: 13px; font-weight: 700; color: #34d399;">0.0%</span>
             </div>
         </div>
-    """, unsafe_allow_html=True)
+    """)
 
 # Footer
-st.markdown("""
+st.html("""
     <div style="text-align: center; font-size: 11px; color: #6b7280; margin-top: 30px; padding: 12px; border-top: 1px solid #1f2937;">
         MetroPT Dataset • Stacked Ensemble (LightGBM + XGBoost + CNN) • Inference 20ms • Last Update """ + datetime.now().strftime("%H:%M:%S") + """
     </div>
-""", unsafe_allow_html=True)
+""")
