@@ -205,24 +205,46 @@ latency_ms = int(np.random.uniform(18, 25))
 now_str = datetime.now().strftime("%I:%M:%S %p")
 
 # ──────────────────────────────────────────────────────────────────────
-# 1. HEADER: Title + StatusStrip badges
+# 1. HEADER: Title + StatusStrip badges (Exact Vercel Lucide icons & styling)
 # ──────────────────────────────────────────────────────────────────────
 st.html(f"""
-<div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:32px;">
-    <div style="display:flex; align-items:center; gap:12px;">
-        <div style="padding:12px; background:rgba(250,250,250,0.1); border-radius:0.75rem;">
-            <span style="font-size:28px;">🛡️</span>
+<div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:24px; border-bottom:1px solid rgba(39,39,42,0.4); margin-bottom:28px;">
+    <div style="display:flex; align-items:center; gap:16px;">
+        <div style="padding:12px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:0.75rem; display:flex; align-items:center; justify-content:center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fafafa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+                <line x1="12" x2="12" y1="8" y2="12"/>
+                <line x1="12" x2="12.01" y1="16" y2="16"/>
+            </svg>
         </div>
         <div>
-            <h1 style="margin:0; font-size:32px; font-weight:800; letter-spacing:-0.025em; color:#fafafa;">MetroPT APU Predictive Maintenance</h1>
-            <p style="margin:4px 0 0 0; font-size:14px; color:#a1a1aa;">Real-time monitoring and AI diagnostics for railway Air Production Units.</p>
+            <h1 style="margin:0; font-size:28px; font-weight:800; letter-spacing:-0.025em; color:#fafafa; line-height:1.2;">MetroPT APU Predictive Maintenance</h1>
+            <p style="margin:4px 0 0 0; font-size:14px; color:#a1a1aa; font-weight:400;">Real-time monitoring and AI diagnostics for railway Air Production Units.</p>
         </div>
     </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <span class="v-badge">⚡ Inference {latency_ms}ms</span>
-        <span class="v-badge">🗄️ Redis <span style="color:#22c55e;margin-left:2px;">✓</span></span>
-        <span class="v-badge">📡 WebSocket <span style="color:#22c55e;font-weight:700;margin-left:2px;">(Live)</span></span>
-        <span class="v-badge">🧠 Model v2.1</span>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <!-- Badge 1: Inference -->
+        <div style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+            <span>Inference {latency_ms}ms</span>
+        </div>
+        <!-- Badge 2: Redis -->
+        <div style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+            <span>Redis</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+        </div>
+        <!-- Badge 3: WebSocket -->
+        <div style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>
+            <span>WebSocket</span>
+            <span style="color:#22c55e; font-weight:700; margin-left:1px;">(Live)</span>
+        </div>
+        <!-- Badge 4: Model -->
+        <div style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>
+            <span>Model v2.1</span>
+        </div>
     </div>
 </div>
 """)
