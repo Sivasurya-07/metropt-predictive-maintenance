@@ -234,13 +234,37 @@ with g3:
     st.html("""<div class="v-card" style="padding-bottom:0;"><div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.05em;">Motor Current</div></div>""")
     st.plotly_chart(make_gauge(current_val, 0, 15, '#f59e0b', 'AMPS'), use_container_width=True, key='g3', config=clean_chart_config)
 
-# MAIN ANALYTICAL GRID
+# ──────────────────────────────────────────────────────────────────────
+# Interactive Subsystem State
+# ──────────────────────────────────────────────────────────────────────
+if "selected_subsystem" not in st.session_state:
+    st.session_state.selected_subsystem = "Compressor"
+
+selected_sub = st.session_state.selected_subsystem
+
+# Calculate live metrics per subsystem
+if selected_sub == "Compressor":
+    sub_temp = f"{temp_val} C"
+    sub_press = f"{pressure_val} bar"
+elif selected_sub == "Reservoir":
+    sub_temp = "N/A"
+    sub_press = f"{tp3_val} bar"
+elif selected_sub == "Motor":
+    sub_temp = "N/A"
+    sub_press = f"{current_val} A"
+elif selected_sub == "Valves":
+    sub_temp = f"{h1_val} C"
+    sub_press = f"{dv_val} bar"
+
+# ──────────────────────────────────────────────────────────────────────
+# MAIN ANALYTICAL GRID: 2/3 left + 1/3 right
+# ──────────────────────────────────────────────────────────────────────
 left_col, right_col = st.columns([2, 1])
 
 with left_col:
     # Interactive APU Schematic
-    st.html(f"""
-    <div class="v-card" style="margin-bottom:24px;">
+    st.html("""
+    <div class="v-card" style="margin-bottom:0; border-bottom-left-radius:0; border-bottom-right-radius:0; border-bottom:none;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
             <div style="font-size:18px; font-weight:700; color:#fafafa; display:flex; align-items:center; gap:8px;">
                 Interactive APU Schematic
@@ -250,32 +274,72 @@ with left_col:
                 Live Data Connected
             </div>
         </div>
-        <p style="font-size:14px; color:#a1a1aa; margin-bottom:24px;">Click physical subsystems to inspect real-time sensor metrics and localized AI failure attribution.</p>
+        <p style="font-size:14px; color:#a1a1aa; margin-bottom:12px;">Click physical subsystems below to inspect real-time sensor metrics and localized AI failure attribution.</p>
+    </div>
+    """)
 
+    # Interactive Subsystem Selector Buttons
+    btn_c1, btn_c2, btn_c3, btn_c4 = st.columns(4)
+    with btn_c1:
+        if st.button("Reservoir", key="btn_res", use_container_width=True, type="primary" if selected_sub=="Reservoir" else "secondary"):
+            st.session_state.selected_subsystem = "Reservoir"
+            st.rerun()
+    with btn_c2:
+        if st.button("Compressor", key="btn_comp", use_container_width=True, type="primary" if selected_sub=="Compressor" else "secondary"):
+            st.session_state.selected_subsystem = "Compressor"
+            st.rerun()
+    with btn_c3:
+        if st.button("Motor", key="btn_mot", use_container_width=True, type="primary" if selected_sub=="Motor" else "secondary"):
+            st.session_state.selected_subsystem = "Motor"
+            st.rerun()
+    with btn_c4:
+        if st.button("Valves", key="btn_val", use_container_width=True, type="primary" if selected_sub=="Valves" else "secondary"):
+            st.session_state.selected_subsystem = "Valves"
+            st.rerun()
+
+    # Dynamic Schematic + Detail Panel HTML
+    res_border = "#fafafa" if selected_sub == "Reservoir" else "#27272a"
+    comp_border = "#fafafa" if selected_sub == "Compressor" else "#27272a"
+    mot_border = "#fafafa" if selected_sub == "Motor" else "#27272a"
+    val_border = "#fafafa" if selected_sub == "Valves" else "#27272a"
+
+    res_bg = "rgba(250,250,250,0.1)" if selected_sub == "Reservoir" else "rgba(9,9,11,0.5)"
+    comp_bg = "rgba(250,250,250,0.1)" if selected_sub == "Compressor" else "rgba(9,9,11,0.5)"
+    mot_bg = "rgba(250,250,250,0.1)" if selected_sub == "Motor" else "rgba(9,9,11,0.5)"
+    val_bg = "rgba(250,250,250,0.1)" if selected_sub == "Valves" else "rgba(9,9,11,0.5)"
+
+    st.html(f"""
+    <div class="v-card" style="border-top-left-radius:0; border-top-right-radius:0; padding-top:12px; margin-bottom:24px;">
         <div style="display:flex; min-height:250px;">
+            <!-- Left: Schematic Vector Diagram -->
             <div style="flex:1; background:rgba(39,39,42,0.2); border-radius:8px; padding:24px; display:flex; align-items:center; justify-content:center; border-right:1px solid rgba(39,39,42,0.5); position:relative;">
                 <div style="width:100%; max-width:360px; position:relative; aspect-ratio:4/3;">
-                    <div class="v-subsys" style="position:absolute; top:8%; left:8%; width:84%; height:22%; border-radius:9999px; display:flex; align-items:center; justify-content:center;">
+                    <!-- Reservoir -->
+                    <div style="position:absolute; top:8%; left:8%; width:84%; height:22%; border-radius:9999px; display:flex; align-items:center; justify-content:center; border:2px solid {res_border}; background:{res_bg}; font-weight:700; font-size:14px; color:#fafafa;">
                         Reservoir
                     </div>
                     <div style="position:absolute; top:30%; left:50%; width:2px; height:10%; background:#27272a;"></div>
-                    <div class="v-subsys" style="position:absolute; top:42%; left:4%; width:22%; height:22%; display:flex; align-items:center; justify-content:center;">
+                    <!-- Motor -->
+                    <div style="position:absolute; top:42%; left:4%; width:22%; height:22%; display:flex; align-items:center; justify-content:center; border:2px solid {mot_border}; background:{mot_bg}; font-weight:700; font-size:14px; color:#fafafa; border-radius:4px;">
                         Motor
                     </div>
                     <div style="position:absolute; top:53%; left:26%; width:6%; height:2px; background:#27272a;"></div>
-                    <div class="v-subsys active" style="position:absolute; top:40%; left:28%; width:44%; height:30%; display:flex; align-items:center; justify-content:center;">
+                    <!-- Compressor -->
+                    <div style="position:absolute; top:40%; left:28%; width:44%; height:30%; display:flex; align-items:center; justify-content:center; border:2px solid {comp_border}; background:{comp_bg}; font-weight:700; font-size:14px; color:#fafafa; border-radius:4px;">
                         Compressor
                     </div>
                     <div style="position:absolute; top:70%; left:50%; width:2px; height:6%; background:#27272a;"></div>
-                    <div class="v-subsys" style="position:absolute; top:76%; left:44%; width:12%; height:18%; display:flex; align-items:center; justify-content:center; writing-mode:vertical-rl; text-orientation:mixed; font-size:12px;">
+                    <!-- Valves -->
+                    <div style="position:absolute; top:76%; left:44%; width:12%; height:18%; display:flex; align-items:center; justify-content:center; border:2px solid {val_border}; background:{val_bg}; font-weight:700; font-size:12px; color:#fafafa; writing-mode:vertical-rl; text-orientation:mixed; border-radius:4px;">
                         Valves
                     </div>
                 </div>
             </div>
 
+            <!-- Right: Dynamic Detail Panel -->
             <div style="width:260px; padding:24px; display:flex; flex-direction:column; gap:12px; background:rgba(9,9,11,0.5);">
                 <div style="border-bottom:1px solid rgba(39,39,42,0.5); padding-bottom:12px;">
-                    <h3 style="margin:0; font-size:20px; font-weight:700; color:#fafafa; letter-spacing:-0.025em;">Compressor</h3>
+                    <h3 style="margin:0; font-size:20px; font-weight:700; color:#fafafa; letter-spacing:-0.025em;">{selected_sub}</h3>
                 </div>
                 <div style="display:flex; flex-direction:column; gap:12px; font-size:14px;">
                     <div style="display:flex; justify-content:space-between;">
@@ -284,11 +348,11 @@ with left_col:
                     </div>
                     <div style="display:flex; justify-content:space-between;">
                         <span style="color:#a1a1aa;">Temperature</span>
-                        <span style="color:#fafafa; font-weight:600;">{temp_val} C</span>
+                        <span style="color:#fafafa; font-weight:600;">{sub_temp}</span>
                     </div>
                     <div style="display:flex; justify-content:space-between;">
                         <span style="color:#a1a1aa;">Pressure/Current</span>
-                        <span style="color:#fafafa; font-weight:600;">{pressure_val} bar</span>
+                        <span style="color:#fafafa; font-weight:600;">{sub_press}</span>
                     </div>
                     <div style="margin-top:8px; padding-top:12px; border-top:1px solid rgba(39,39,42,0.5); display:flex; flex-direction:column; gap:8px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
