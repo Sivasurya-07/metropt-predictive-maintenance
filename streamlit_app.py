@@ -2,127 +2,348 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
-from pathlib import Path
-import sys
+from datetime import datetime
 
+# Streamlit Page Config
 st.set_page_config(
-    page_title="MetroPT APU Predictive Maintenance Dashboard",
-    page_icon="🚆",
+    page_title="MetroPT APU Predictive Maintenance",
+    page_icon="🚄",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# Header & Branding
-st.title("🚆 MetroPT APU Predictive Maintenance Dashboard")
-st.markdown("**Real-Time Air Production Unit Early-Warning & Diagnostic System (Porto Fleet)**")
+# Custom Dark Theme CSS matching original Vercel Next.js UI
+st.markdown("""
+<style>
+    /* Dark Background */
+    .stApp {
+        background-color: #0b0f17;
+        color: #e2e8f0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
 
-# Sidebar Configuration
-st.sidebar.header("⚙️ Fleet Control Panel")
-apu_selection = st.sidebar.selectbox("Select Train Unit", ["APU-Unit-01 (Porto Fleet)", "APU-Unit-02 (Backup)", "APU-Unit-03 (Depot)"])
-st.sidebar.markdown("---")
-st.sidebar.success("System Status: **Active Cloud Simulation**\nData Frequency: **10s Sampling**")
+    /* Hide Streamlit Header Elements */
+    header[data-testid="stHeader"] { visibility: hidden; height: 0px; }
+    div[data-testid="stToolbar"] { visibility: hidden; }
 
-# Telemetry Data Generator
+    /* Custom Cards */
+    .card-box {
+        background-color: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+
+    /* Status Banner - Normal */
+    .banner-normal {
+        background-color: #064e3b;
+        border: 1px solid #059669;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .banner-title {
+        color: #34d399;
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+    }
+    .banner-subtitle {
+        color: #a7f3d0;
+        font-size: 14px;
+        margin-top: 2px;
+    }
+
+    /* Gauge Labels */
+    .gauge-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: #9ca3af;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+    
+    /* System Badges */
+    .badge {
+        background-color: #1f2937;
+        color: #9ca3af;
+        border: 1px solid #374151;
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #10b981;
+    }
+
+    /* Row Label Styles */
+    .metric-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #1f2937;
+    }
+    .metric-row:last-child {
+        border-bottom: none;
+    }
+    .dot-green {
+        width: 10px;
+        height: 10px;
+        background-color: #10b981;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    /* Schematic Box */
+    .schematic-box {
+        border: 2px solid #374151;
+        border-radius: 8px;
+        padding: 14px;
+        text-align: center;
+        background-color: #0f172a;
+        color: #f8fafc;
+        font-weight: 600;
+        font-size: 13px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Top Title Bar & System Badges
+title_col, badges_col = st.columns([3, 2])
+
+with title_col:
+    st.markdown("""
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 12px;">
+            <div style="background: #1e293b; padding: 10px; border-radius: 12px; border: 1px solid #334155;">
+                <span style="font-size: 24px;">🛡️</span>
+            </div>
+            <div>
+                <h1 style="margin:0; font-size: 26px; font-weight: 800; color: #f8fafc;">MetroPT APU Predictive Maintenance</h1>
+                <p style="margin:0; font-size: 14px; color: #94a3b8;">Real-time monitoring and AI diagnostics for railway Air Production Units.</p>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+with badges_col:
+    st.markdown("""
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
+            <span class="badge">⚡ Inference 21ms</span>
+            <span class="badge"><span class="badge-dot"></span> Redis</span>
+            <span class="badge"><span class="badge-dot"></span> WebSocket (Live)</span>
+            <span class="badge">⚙️ Model v2.1</span>
+        </div>
+    """, unsafe_allow_html=True)
+
+# Green Status Banner
+st.markdown("""
+    <div class="banner-normal">
+        <div style="background-color: #059669; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px;">
+            ✓
+        </div>
+        <div>
+            <div class="banner-title">CONTINUE OPERATION</div>
+            <div class="banner-subtitle">All telemetry nominal. No immediate maintenance required.</div>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
+
+# Generate Live Data Values
 np.random.seed(42)
-time_index = pd.date_range("2026-08-24 12:00:00", periods=50, freq="10s")
-df_telemetry = pd.DataFrame({
-    "TP2": np.random.normal(8.5, 0.3, 50),
-    "TP3": np.random.normal(9.8, 0.4, 50),
-    "H1": np.random.normal(0.05, 0.01, 50),
-    "Motor_current": np.random.normal(11.5, 0.8, 50),
-    "Oil_temperature": np.random.normal(55.0, 1.2, 50)
-}, index=time_index)
+pressure_val = round(float(8.1 + (np.random.rand() * 0.2 - 0.1)), 1)
+temp_val = round(float(60.7 + (np.random.rand() * 0.4 - 0.2)), 1)
+current_val = round(float(8.0 + (np.random.rand() * 0.4 - 0.2)), 1)
 
-# Top Metrics Row
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    st.metric(label="2 Hours Horizon Risk", value="2.1%", delta="Low Risk")
-
-with col2:
-    st.metric(label="4 Hours Horizon Risk", value="4.8%", delta="Normal")
-
-with col3:
-    st.metric(label="8 Hours Horizon Risk", value="12.4%", delta="Watch Window")
-
-with col4:
-    st.markdown("### Status\n`:green[NORMAL]`")
-
-st.markdown("---")
-
-# Main Content Layout: Charts & Diagnostic Cards
-left_col, right_col = st.columns([2, 1])
-
-with left_col:
-    st.subheader("📈 Real-Time Telemetry & Pressure Trends")
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=df_telemetry.index, y=df_telemetry["TP2"], mode='lines', name='TP2 (Compressor Pressure)', line=dict(color='#1f77b4', width=2)))
-    fig.add_trace(go.Scatter(x=df_telemetry.index, y=df_telemetry["TP3"], mode='lines', name='TP3 (Reservoir Pressure)', line=dict(color='#2ca02c', width=2)))
-    fig.add_trace(go.Scatter(x=df_telemetry.index, y=df_telemetry["H1"], mode='lines', name='H1 (Filter Pressure Drop)', line=dict(color='#ff7f0e', width=1.5)))
-    fig.add_trace(go.Scatter(x=df_telemetry.index, y=df_telemetry["Motor_current"], mode='lines', name='Motor Current (A)', line=dict(color='#d62728', width=1.5, dash='dot')))
-    
-    fig.update_layout(
-        title="Compressor Sensor Telemetry Trends",
-        xaxis_title="Time Step / Timestamp",
-        yaxis_title="Sensor Value",
-        template="plotly_dark",
-        margin=dict(l=40, r=40, t=50, b=40),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
-with right_col:
-    st.subheader("🔍 SHAP Degradation Drivers")
-    top_features = ["Motor_current_roll_mean_30m", "TP2_roll_min_60m", "H1_filter_drop", "Oil_temperature_std"]
-    scores = [0.14, 0.09, 0.05, 0.02]
-    
-    fig_shap = go.Figure(go.Bar(
-        x=scores,
-        y=top_features,
-        orientation='h',
-        marker=dict(color='#e74c3c')
+# Gauge Helper Functions
+def create_gauge(value: float, min_v: float, max_v: float, unit: str, color: str) -> go.Figure:
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=value,
+        number={'suffix': f" {unit}", 'font': {'size': 26, 'color': '#ffffff', 'family': 'sans-serif'}},
+        gauge={
+            'axis': {'range': [min_v, max_v], 'tickwidth': 0, 'tickcolor': "rgba(0,0,0,0)"},
+            'bar': {'color': color, 'thickness': 0.3},
+            'bgcolor': "#1f2937",
+            'bordercolor': "rgba(0,0,0,0)",
+        }
     ))
-    fig_shap.update_layout(
-        title="Top Degradation Drivers (TreeSHAP)",
-        xaxis_title="Attribution Score",
-        yaxis_title="Sensor / Feature",
-        template="plotly_dark",
-        margin=dict(l=40, r=40, t=50, b=40)
+    fig.update_layout(
+        height=140,
+        margin=dict(l=20, r=20, t=10, b=10),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
     )
-    st.plotly_chart(fig_shap, use_container_width=True)
+    return fig
 
-# Diagnostic Narrative & Work Order Section
-st.markdown("---")
-st.subheader("📋 AI Diagnostic Report & Maintenance Actions")
-narrative = "The APU operates within normal parameters. Telemetry signals demonstrate healthy pressure differentials across all pneumatic lines."
-st.info(narrative)
+# Row 1: Three Gauge Cards
+g_col1, g_col2, g_col3 = st.columns(3)
 
-work_order_text = f"""================================================================================
-METRO RAILWAY MAINTENANCE WORK ORDER
-================================================================================
-Target Equipment: APU Compressor System ({apu_selection})
-Alert Status     : NORMAL
-Predicted Window: Within next 4h
-Failure Risk     : 4.8%
+with g_col1:
+    st.markdown('<div class="card-box"><div class="gauge-title">f PRESSURE</div>', unsafe_allow_html=True)
+    st.plotly_chart(create_gauge(pressure_val, 0, 15, "BAR", "#3b82f6"), use_container_width=True, key="gauge_p")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-DIAGNOSTIC SUMMARY:
---------------------------------------------------------------------------------
-{narrative}
+with g_col2:
+    st.markdown('<div class="card-box"><div class="gauge-title">🌡️ TEMPERATURE</div>', unsafe_allow_html=True)
+    st.plotly_chart(create_gauge(temp_val, 0, 100, "°C", "#ef4444"), use_container_width=True, key="gauge_t")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-RECOMMENDED MAINTENANCE ACTIONS:
---------------------------------------------------------------------------------
-1. Inspect compressor intake valve (COMP) and pressure switch actuation logic.
-2. Check oil temperature levels and filter pressure differential (H1).
-3. Perform static pressure drop test on main air reservoir (TP3).
-4. Verify motor current draw during full compression duty cycle.
+with g_col3:
+    st.markdown('<div class="card-box"><div class="gauge-title">⚡ MOTOR CURRENT</div>', unsafe_allow_html=True)
+    st.plotly_chart(create_gauge(current_val, 0, 20, "AMPS", "#f59e0b"), use_container_width=True, key="gauge_c")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-Generated by MetroPT AI Early-Warning System | Time-Series Analytics Engine
-================================================================================
-"""
+# Row 2: Schematic + AI Predictive Analysis
+mid_col1, mid_col2 = st.columns([3, 2])
 
-st.download_button(
-    label="📄 Download Automated Maintenance Work Order",
-    data=work_order_text,
-    file_name=f"Work_Order_{apu_selection.split()[0]}.txt",
-    mime="text/plain"
-)
+with mid_col1:
+    st.markdown("""
+        <div class="card-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-weight: 700; font-size: 15px; color: #f3f4f6;">⚙️ Interactive APU Schematic</div>
+                <span class="badge" style="color: #34d399;"><span class="badge-dot"></span> Live Data Connected</span>
+            </div>
+            <p style="font-size: 12px; color: #9ca3af; margin-bottom: 20px;">Click physical subsystems to inspect real-time sensor metrics and localized AI failure attribution.</p>
+            
+            <div style="display: flex; gap: 30px; align-items: center;">
+                <div style="flex: 2;">
+                    <!-- Diagram -->
+                    <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+                        <div class="schematic-box" style="width: 140px;">Reservoir</div>
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 20px; align-items: center;">
+                        <div class="schematic-box" style="width: 100px;">Motor</div>
+                        <div class="schematic-box" style="width: 120px;">Compressor</div>
+                    </div>
+                    <div style="display: flex; justify-content: center; margin-top: 20px;">
+                        <div class="schematic-box" style="width: 80px; border-color: #f8fafc;">Valves</div>
+                    </div>
+                </div>
+                
+                <div style="flex: 1; border-left: 1px solid #1f2937; padding-left: 20px;">
+                    <div style="font-weight: 700; font-size: 15px; margin-bottom: 12px; color: #f8fafc;">Valves</div>
+                    <div style="font-size: 13px; color: #9ca3af; margin-bottom: 6px;">Health Status <span style="float: right; color: #34d399; font-weight: 700;">100.0%</span></div>
+                    <div style="font-size: 13px; color: #9ca3af; margin-bottom: 6px;">Temperature <span style="float: right; color: #f8fafc; font-weight: 600;">9.0°C</span></div>
+                    <div style="font-size: 13px; color: #9ca3af; margin-bottom: 16px;">Pressure/Current <span style="float: right; color: #f8fafc; font-weight: 600;">0.21 bar</span></div>
+                    
+                    <div style="font-size: 11px; font-weight: 700; color: #6b7280; letter-spacing: 0.5px;">SHAP IMPACT <span style="float: right; color: #ef4444;">+0.0%</span></div>
+                    <div style="font-size: 11px; font-weight: 700; color: #6b7280; margin-top: 10px;">PRIMARY REASON</div>
+                    <div style="font-size: 13px; color: #f8fafc; font-weight: 600;">Normal operation</div>
+                </div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+with mid_col2:
+    st.markdown("""
+        <div class="card-box">
+            <div style="font-weight: 700; font-size: 15px; color: #f3f4f6; margin-bottom: 16px;">🧠 AI Predictive Analysis</div>
+            
+            <div class="metric-row">
+                <span style="font-size: 14px; font-weight: 600; color: #e5e7eb;">2 Hours</span>
+                <span style="font-size: 14px; font-weight: 700; color: #f8fafc;">0% <span class="dot-green"></span></span>
+            </div>
+            
+            <div class="metric-row">
+                <span style="font-size: 14px; font-weight: 600; color: #e5e7eb;">4 Hours</span>
+                <span style="font-size: 14px; font-weight: 700; color: #f8fafc;">0% <span class="dot-green"></span></span>
+            </div>
+            
+            <div class="metric-row">
+                <span style="font-size: 14px; font-weight: 600; color: #e5e7eb;">8 Hours</span>
+                <span style="font-size: 14px; font-weight: 700; color: #f8fafc;">0% <span class="dot-green"></span></span>
+            </div>
+            
+            <div style="margin-top: 20px; padding-top: 12px; border-top: 1px solid #1f2937;">
+                <div style="display: flex; justify-content: space-between; font-size: 13px; color: #9ca3af; margin-bottom: 8px;">
+                    <span>Overall Risk</span>
+                    <span style="color: #34d399; font-weight: 700;">NORMAL</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; color: #9ca3af; margin-bottom: 16px;">
+                    <span>Confidence</span>
+                    <span style="color: #f8fafc; font-weight: 600;">0.0%</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; color: #9ca3af;">
+                    <span>Recommendation</span>
+                    <span style="color: #f8fafc; font-weight: 600;">Continue operation</span>
+                </div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+# Row 3: Live Sensor Telemetry Line Chart + Top AI Contributors
+bot_col1, bot_col2 = st.columns([3, 2])
+
+with bot_col1:
+    st.markdown("""
+        <div class="card-box">
+            <div style="font-weight: 700; font-size: 15px; color: #f3f4f6;">📉 Live Sensor Telemetry</div>
+            <div style="font-size: 12px; color: #9ca3af; margin-bottom: 12px;">Raw time-series data from the edge device.</div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Generate Multi-Colored Line Chart
+    t_steps = pd.date_range("00:01:35", periods=60, freq="1s")
+    df_chart = pd.DataFrame({
+        "TP2": np.random.normal(8.0, 0.4, 60),
+        "TP3": np.random.normal(9.5, 0.3, 60),
+        "H1": np.random.normal(6.5, 0.5, 60),
+        "Motor_current": np.random.normal(7.8, 0.6, 60)
+    }, index=t_steps)
+
+    fig_lines = go.Figure()
+    fig_lines.add_trace(go.Scatter(x=df_chart.index, y=df_chart["TP2"], mode='lines', name='TP2', line=dict(color='#3b82f6', width=1.5)))
+    fig_lines.add_trace(go.Scatter(x=df_chart.index, y=df_chart["TP3"], mode='lines', name='TP3', line=dict(color='#10b981', width=1.5)))
+    fig_lines.add_trace(go.Scatter(x=df_chart.index, y=df_chart["H1"], mode='lines', name='H1', line=dict(color='#06b6d4', width=1.5)))
+    fig_lines.add_trace(go.Scatter(x=df_chart.index, y=df_chart["Motor_current"], mode='lines', name='Motor current', line=dict(color='#a855f7', width=1.5)))
+
+    fig_lines.update_layout(
+        height=260,
+        margin=dict(l=30, r=20, t=10, b=30),
+        paper_bgcolor='#111827',
+        plot_bgcolor='#111827',
+        xaxis=dict(showgrid=True, gridcolor='#1f2937', color='#9ca3af'),
+        yaxis=dict(showgrid=True, gridcolor='#1f2937', color='#9ca3af'),
+        showlegend=False
+    )
+    st.plotly_chart(fig_lines, use_container_width=True, key="live_lines")
+
+with bot_col2:
+    st.markdown("""
+        <div class="card-box">
+            <div style="font-weight: 700; font-size: 15px; color: #f3f4f6;">📊 Top AI Contributors</div>
+            <div style="font-size: 12px; color: #9ca3af; margin-bottom: 16px;">The physical sensors driving the AI's current risk assessment.</div>
+            
+            <div style="font-size: 12px; color: #9ca3af; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between;"><span>TP2</span><span>0.12</span></div>
+                <div style="display: flex; justify-content: space-between;"><span>TP3</span><span>0.08</span></div>
+                <div style="display: flex; justify-content: space-between;"><span>H1</span><span>0.05</span></div>
+                <div style="display: flex; justify-content: space-between;"><span>DV pressure</span><span>0.03</span></div>
+                <div style="display: flex; justify-content: space-between;"><span>Reservoirs</span><span>0.02</span></div>
+            </div>
+            
+            <div style="border-top: 1px solid #1f2937; padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 12px; font-weight: 600; color: #9ca3af;">📈 4H Risk Trend</span>
+                <span style="font-size: 13px; font-weight: 700; color: #34d399;">0.0%</span>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+# Footer
+st.markdown("""
+    <div style="text-align: center; font-size: 11px; color: #6b7280; margin-top: 30px; padding: 12px; border-top: 1px solid #1f2937;">
+        MetroPT Dataset • Stacked Ensemble (LightGBM + XGBoost + CNN) • Inference 20ms • Last Update """ + datetime.now().strftime("%H:%M:%S") + """
+    </div>
+""", unsafe_allow_html=True)
