@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -181,7 +181,9 @@ st.html(f"""
 </div>
 """)
 
-# 3. SENSOR GAUGES (3 columns)
+# ──────────────────────────────────────────────────────────────────────
+# 3. SENSOR GAUGES (3 columns) — Plotly Indicator (clean half-circle)
+# ──────────────────────────────────────────────────────────────────────
 def make_gauge(value, vmin, vmax, color, unit):
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
@@ -207,27 +209,30 @@ def make_gauge(value, vmin, vmax, color, unit):
         },
     ))
     fig.update_layout(
-        height=150,
-        margin=dict(l=30, r=30, t=20, b=0),
+        height=140,
+        margin=dict(l=20, r=20, t=10, b=0),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         font=dict(color='#fafafa'),
     )
     return fig
 
+# Clean Plotly Chart Config (hides overlapping modebar buttons completely)
+clean_chart_config = {'displayModeBar': False, 'responsive': True}
+
 g1, g2, g3 = st.columns(3)
 
 with g1:
     st.html("""<div class="v-card" style="padding-bottom:0;"><div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.05em;">Pressure</div></div>""")
-    st.plotly_chart(make_gauge(pressure_val, 0, 12, '#3b82f6', 'BAR'), use_container_width=True, key='g1')
+    st.plotly_chart(make_gauge(pressure_val, 0, 12, '#3b82f6', 'BAR'), use_container_width=True, key='g1', config=clean_chart_config)
 
 with g2:
     st.html("""<div class="v-card" style="padding-bottom:0;"><div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.05em;">Temperature</div></div>""")
-    st.plotly_chart(make_gauge(temp_val, 20, 100, '#ef4444', 'C'), use_container_width=True, key='g2')
+    st.plotly_chart(make_gauge(temp_val, 20, 100, '#ef4444', 'C'), use_container_width=True, key='g2', config=clean_chart_config)
 
 with g3:
     st.html("""<div class="v-card" style="padding-bottom:0;"><div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.05em;">Motor Current</div></div>""")
-    st.plotly_chart(make_gauge(current_val, 0, 15, '#f59e0b', 'AMPS'), use_container_width=True, key='g3')
+    st.plotly_chart(make_gauge(current_val, 0, 15, '#f59e0b', 'AMPS'), use_container_width=True, key='g3', config=clean_chart_config)
 
 # MAIN ANALYTICAL GRID
 left_col, right_col = st.columns([2, 1])
@@ -311,12 +316,21 @@ with left_col:
     </div>
     """)
 
-    t_idx = pd.date_range(datetime.now().strftime("%Y-%m-%d"), periods=60, freq="2s")
-    np.random.seed(42)
+    # Generate rolling live time-series telemetry data up to current timestamp
+    curr_time = pd.Timestamp.now()
+    t_idx = pd.date_range(end=curr_time, periods=60, freq="2s")
+    # Smooth random walk to simulate dynamic real-time edge telemetry
+    seed_offset = int(curr_time.timestamp()) % 10000
+    np.random.seed(seed_offset)
+    
+    tp2_series = pressure_val + np.cumsum(np.random.normal(0, 0.05, 60))
+    tp3_series = tp3_val + np.cumsum(np.random.normal(0, 0.03, 60))
+    h1_series  = (0.05 + np.cumsum(np.random.normal(0, 0.001, 60))) * 100
+
     df = pd.DataFrame({
-        "TP2": np.random.normal(pressure_val, 0.3, 60),
-        "TP3": np.random.normal(tp3_val, 0.2, 60),
-        "H1":  np.random.normal(0.05, 0.005, 60) * 100,
+        "TP2": tp2_series,
+        "TP3": tp3_series,
+        "H1":  h1_series,
     }, index=t_idx)
 
     fig_tele = go.Figure()
@@ -328,7 +342,7 @@ with left_col:
                                   line=dict(color='#8b5cf6', width=2)))
     fig_tele.update_layout(
         height=350,
-        margin=dict(l=0, r=5, t=5, b=30),
+        margin=dict(l=10, r=10, t=10, b=30),
         paper_bgcolor='rgba(9,9,11,0.5)',
         plot_bgcolor='rgba(9,9,11,0.5)',
         xaxis=dict(showgrid=False, color='#a1a1aa', tickformat='%H:%M:%S'),
@@ -337,7 +351,7 @@ with left_col:
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1,
                     font=dict(size=12, color='#a1a1aa'), bgcolor='rgba(0,0,0,0)'),
     )
-    st.plotly_chart(fig_tele, use_container_width=True, key='telemetry')
+    st.plotly_chart(fig_tele, use_container_width=True, key='telemetry', config=clean_chart_config)
 
 with right_col:
     # AI Predictive Analysis
