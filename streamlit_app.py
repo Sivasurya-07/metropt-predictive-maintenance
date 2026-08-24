@@ -169,71 +169,69 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
 .v-shap-bar-track { flex: 1; height: 20px; background: transparent; border-radius: 0 4px 4px 0; }
 .v-shap-bar-fill  { height: 100%; border-radius: 0 4px 4px 0; }
 
-/* ─── Footer ──────────────────────────────────────────────────── */
-.v-footer {
-    text-align: center;
-    margin-top: 32px;
-    padding-top: 16px;
-    border-top: 1px solid rgba(39,39,42,0.5);
-}
-.v-footer-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: #a1a1aa;
-    background: rgba(39,39,42,0.3);
-    padding: 6px 12px;
-    border-radius: 9999px;
-    border: 1px solid rgba(39,39,42,0.5);
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ──────────────────────────────────────────────────────────────────────
-# Simulated live data
-# ──────────────────────────────────────────────────────────────────────
-np.random.seed(int(datetime.now().second))
-pressure_val = round(float(np.random.uniform(7.8, 8.4)), 1)
-temp_val = round(float(np.random.uniform(59.5, 62.0)), 1)
-current_val = round(float(np.random.uniform(7.6, 8.4)), 1)
-tp3_val = round(float(np.random.uniform(9.4, 9.9)), 1)
-h1_val = round(float(np.random.uniform(0.04, 0.06)), 3)
-dv_val = round(float(np.random.uniform(0.0, 0.02)), 2)
-res_val = round(float(np.random.uniform(8.3, 8.7)), 1)
-latency_ms = int(np.random.uniform(18, 25))
-now_str = datetime.now().strftime("%I:%M:%S %p")
-
-# ──────────────────────────────────────────────────────────────────────
+/* ─── Footer ───────────────────�# ──────────────────────────────────────────────────────────────────────
 # 1. HEADER: Title + StatusStrip badges (Exact Vercel Lucide icons & styling)
 # ──────────────────────────────────────────────────────────────────────
-shield_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='%23fafafa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E"
+shield_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%23fafafa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E"
 zap_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23f59e0b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/%3E%3C/svg%3E"
 server_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='2' width='20' height='8' rx='2' ry='2'/%3E%3Crect x='2' y='14' width='20' height='8' rx='2' ry='2'/%3E%3Cline x1='6' y1='6' x2='6.01' y2='6'/%3E%3Cline x1='6' y1='18' x2='6.01' y2='18'/%3E%3C/svg%3E"
 check_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E%3C/svg%3E"
 activity_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='22 12 18 12 15 21 9 3 6 12 2 12'/%3E%3C/svg%3E"
-cpu_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a855f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='16' height='16' rx='2' ry='2'/%3E%3Crect x='9' y='9' width='6' height='6'/%3E%3Cline x1='9' y1='1' x2='9' y2='4'/%3E%3Cline x1='15' y1='1' x2='15' y2='4'/%3E%3Cline x1='9' y1='20' x2='9' y2='23'/%3E%3Cline x1='15' y1='20' x2='15' y2='23'/%3E%3Cline x1='20' y1='9' x2='23' y2='9'/%3E%3Cline x1='20' y1='15' x2='23' y2='15'/%3E%3Cline x1='1' y1='9' x2='4' y2='9'/%3E%3Cline x1='1' y1='15' x2='4' y2='15'/%3E%3C/svg%3E"
+cpu_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a855f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='16' height='16' rx='2' ry='2'/%3E%3Crect x='9' y='9' width='6' height='6'/%3E%3Cline x1='9' y1='1' x2='9' y2='4'/%3E%3Cline x1='15' y1='1' x2='15' y2='4'/%3E%3Cline x1='9' y1='20' x2='9' y2='23'/%3E%3Cline x1='15' y1='20' x2='15' y2='23'/%3E%3Cline x1='20' y1='9' x2='23' y2='9'/%3E%3Cline x1='20' y1='15' x2='23' y1='15'/%3E%3Cline x1='1' y1='9' x2='4' y2='9'/%3E%3Cline x1='1' y1='15' x2='4' y2='15'/%3E%3C/svg%3E"
+check_circle_large = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E%3C/svg%3E"
 
 st.html(f"""
-<div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:20px; border-bottom:1px solid rgba(39,39,42,0.4); margin-bottom:28px;">
+<div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:24px; border-bottom:1px solid rgba(39,39,42,0.4); margin-bottom:28px;">
     <div style="display:flex; align-items:center; gap:16px;">
-        <div style="padding:10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:0.75rem; display:flex; align-items:center; justify-content:center; width:48px; height:48px; box-sizing:border-box;">
-            <img src="{shield_icon}" width="28" height="28" style="display:block;" />
+        <div style="padding:12px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:0.75rem; display:flex; align-items:center; justify-content:center; width:56px; height:56px; box-sizing:border-box; flex-shrink:0;">
+            <img src="{shield_icon}" width="32" height="32" style="display:block;" />
         </div>
         <div>
-            <h1 style="margin:0; font-size:26px; font-weight:800; letter-spacing:-0.025em; color:#fafafa; line-height:1.2;">MetroPT APU Predictive Maintenance</h1>
-            <p style="margin:3px 0 0 0; font-size:13px; color:#a1a1aa; font-weight:400;">Real-time monitoring and AI diagnostics for railway Air Production Units.</p>
+            <h1 style="margin:0; font-size:30px; font-weight:800; letter-spacing:-0.025em; color:#fafafa; line-height:1.2;">MetroPT APU Predictive Maintenance</h1>
+            <p style="margin:4px 0 0 0; font-size:14px; color:#a1a1aa; font-weight:400;">Real-time monitoring and AI diagnostics for railway Air Production Units.</p>
         </div>
     </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+    <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
         <!-- Badge 1: Inference -->
-        <div style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
+        <div style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
             <img src="{zap_icon}" width="14" height="14" style="display:block;" />
             <span>Inference {latency_ms}ms</span>
         </div>
         <!-- Badge 2: Redis -->
-        <div style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
+        <div style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
             <img src="{server_icon}" width="14" height="14" style="display:block;" />
+            <span>Redis</span>
+            <img src="{check_icon}" width="14" height="14" style="display:block;" />
+        </div>
+        <!-- Badge 3: WebSocket -->
+        <div style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
+            <img src="{activity_icon}" width="14" height="14" style="display:block;" />
+            <span>WebSocket</span>
+            <span style="color:#22c55e; font-weight:700; margin-left:1px;">(Live)</span>
+        </div>
+        <!-- Badge 4: Model -->
+        <div style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
+            <img src="{cpu_icon}" width="14" height="14" style="display:block;" />
+            <span>Model v2.1</span>
+        </div>
+    </div>
+</div>
+""")
+
+# ──────────────────────────────────────────────────────────────────────
+# 2. ALERT BANNER: "Continue Operation" (Exact Vercel Alert Spec)
+# ──────────────────────────────────────────────────────────────────────
+st.html(f"""
+<div style="background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:1rem; padding:24px; display:flex; align-items:center; gap:20px; box-shadow:0 0 30px rgba(16,185,129,0.05); margin-bottom:28px;">
+    <div style="padding:16px; background:rgba(34,197,94,0.2); border-radius:9999px; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+        <img src="{check_circle_large}" width="32" height="32" style="display:block;" />
+    </div>
+    <div>
+        <h2 style="margin:0; font-size:20px; font-weight:800; color:#22c55e; letter-spacing:0.05em; text-transform:uppercase; line-height:1.2;">Continue Operation</h2>
+        <p style="margin:4px 0 0 0; font-size:14px; color:rgba(250,250,250,0.8); font-weight:500;">All telemetry nominal. No immediate maintenance required.</p>
+    </div>
+</div>
+""");" />
             <span>Redis</span>
             <img src="{check_icon}" width="14" height="14" style="display:block;" />
         </div>
