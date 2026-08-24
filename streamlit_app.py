@@ -244,63 +244,43 @@ st.html("""
 
 # ──────────────────────────────────────────────────────────────────────
 # 3. SENSOR GAUGES (3 columns) — SVG half-donut matching Recharts PieChart
-#    Vercel uses: PieChart > Pie startAngle=180 endAngle=0
-#                 innerRadius=60 outerRadius=80, cx=50% cy=85%
 # ──────────────────────────────────────────────────────────────────────
 import math
 
 def svg_half_donut(value, vmin, vmax, color, unit, label_icon, label_text):
-    """Generate an SVG half-donut gauge card matching the exact Vercel Recharts look."""
+    """Generate a self-contained SVG half-donut gauge matching Vercel Recharts."""
     pct = max(0.001, min(1, (value - vmin) / (vmax - vmin)))
 
-    # SVG arc parameters (matching Recharts innerRadius=60, outerRadius=80)
-    cx, cy = 150, 130  # center shifted down (like cy=85% in Recharts)
-    r_outer, r_inner = 80, 60
+    # Arc geometry: center at (150, 90), outer=80, inner=60
+    acx, acy = 150, 90
+    r_out, r_in = 80, 60
 
-    # Helper to compute arc endpoint
-    def arc_point(angle_deg, radius):
-        rad = math.radians(angle_deg)
-        return cx + radius * math.cos(rad), cy - radius * math.sin(rad)
+    def pt(angle, r):
+        rad = math.radians(angle)
+        return acx + r * math.cos(rad), acy - r * math.sin(rad)
 
-    # Background arc: full 180° (from 180° to 0°)
-    bg_start_outer = arc_point(180, r_outer)
-    bg_end_outer = arc_point(0, r_outer)
-    bg_end_inner = arc_point(0, r_inner)
-    bg_start_inner = arc_point(180, r_inner)
+    # Background arc (full 180°)
+    so = pt(180, r_out); eo = pt(0, r_out)
+    ei = pt(0, r_in);   si = pt(180, r_in)
+    bg = f"M{so[0]},{so[1]} A{r_out},{r_out} 0 0,1 {eo[0]},{eo[1]} L{ei[0]},{ei[1]} A{r_in},{r_in} 0 0,0 {si[0]},{si[1]}Z"
 
-    bg_path = (
-        f"M {bg_start_outer[0]},{bg_start_outer[1]} "
-        f"A {r_outer},{r_outer} 0 0,1 {bg_end_outer[0]},{bg_end_outer[1]} "
-        f"L {bg_end_inner[0]},{bg_end_inner[1]} "
-        f"A {r_inner},{r_inner} 0 0,0 {bg_start_inner[0]},{bg_start_inner[1]} "
-        f"Z"
-    )
-
-    # Fill arc: from 180° to (180 - pct*180)°
-    fill_end_angle = 180 - pct * 180
-    fill_large_arc = 1 if pct > 0.5 else 0
-    fill_start_outer = arc_point(180, r_outer)
-    fill_end_outer = arc_point(fill_end_angle, r_outer)
-    fill_end_inner = arc_point(fill_end_angle, r_inner)
-    fill_start_inner = arc_point(180, r_inner)
-
-    fill_path = (
-        f"M {fill_start_outer[0]},{fill_start_outer[1]} "
-        f"A {r_outer},{r_outer} 0 {fill_large_arc},1 {fill_end_outer[0]},{fill_end_outer[1]} "
-        f"L {fill_end_inner[0]},{fill_end_inner[1]} "
-        f"A {r_inner},{r_inner} 0 {fill_large_arc},0 {fill_start_inner[0]},{fill_start_inner[1]} "
-        f"Z"
-    )
+    # Fill arc (pct of 180°)
+    ea = 180 - pct * 180
+    la = 1 if pct > 0.5 else 0
+    fo = pt(ea, r_out); fi = pt(ea, r_in)
+    fl = f"M{so[0]},{so[1]} A{r_out},{r_out} 0 {la},1 {fo[0]},{fo[1]} L{fi[0]},{fi[1]} A{r_in},{r_in} 0 {la},0 {si[0]},{si[1]}Z"
 
     return f"""
-    <div class="v-gauge-card">
-        <div class="v-gauge-label">{label_icon} {label_text}</div>
-        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:calc(100% - 28px);">
-            <svg width="300" height="140" viewBox="0 0 300 160" style="display:block;">
-                <path d="{bg_path}" fill="#27272a" />
-                <path d="{fill_path}" fill="{color}" />
+    <div style="background:rgba(9,9,11,0.5); border:1px solid rgba(39,39,42,0.5); border-radius:0.75rem; padding:16px;">
+        <div style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; color:#a1a1aa; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">
+            {label_icon} {label_text}
+        </div>
+        <div style="position:relative; width:100%; display:flex; justify-content:center;">
+            <svg viewBox="0 0 300 100" width="100%" style="max-width:300px; display:block;">
+                <path d="{bg}" fill="#27272a"/>
+                <path d="{fl}" fill="{color}"/>
             </svg>
-            <div style="margin-top:-40px; text-align:center; position:relative; z-index:1;">
+            <div style="position:absolute; bottom:0; left:50%; transform:translateX(-50%); text-align:center;">
                 <div style="font-size:30px; font-weight:900; color:#fafafa; letter-spacing:-0.05em; line-height:1;">{value}</div>
                 <div style="font-size:12px; font-weight:700; color:#a1a1aa; margin-top:2px;">{unit}</div>
             </div>
