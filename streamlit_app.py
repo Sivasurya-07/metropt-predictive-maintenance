@@ -1,33 +1,20 @@
-import streamlit as st
+﻿import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 from datetime import datetime
 
-# ──────────────────────────────────────────────────────────────────────
 # Page Config
-# ──────────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="MetroPT APU Predictive Maintenance",
-    page_icon="🛡️",
+    page_icon="shield",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
-# ──────────────────────────────────────────────────────────────────────
-# CSS: Exact replica of the Next.js / Tailwind dark theme
-#   --background: 240 10% 3.9%  → hsl(240,10%,3.9%)  ≈ #09090b
-#   --card:       240 10% 3.9%  → same, but with bg-card/50 (semi-transparent)
-#   --border:     240 3.7% 15.9% → hsl(240,3.7%,15.9%) ≈ #27272a
-#   --muted-fg:   240 5% 64.9%  → hsl(240,5%,64.9%)   ≈ #a1a1aa
-#   --secondary:  240 3.7% 15.9%
-#   --success:    142 71% 45%   → hsl(142,71%,45%)    ≈ #22c55e
-#   --destructive:0 84.2% 60.2% → hsl(0,84.2%,60.2%) ≈ #ef4444
-# ──────────────────────────────────────────────────────────────────────
+# Global CSS
 st.markdown("""
 <style>
-/* ─── Global ───────────────────────────────────────────────────── */
 .stApp {
     background-color: #09090b !important;
     color: #fafafa;
@@ -37,11 +24,9 @@ header[data-testid="stHeader"] { display: none !important; }
 div[data-testid="stToolbar"]   { display: none !important; }
 div[data-testid="stDecoration"]{ display: none !important; }
 
-/* Remove default Streamlit padding/gaps that break the layout */
 section[data-testid="stMain"] > div { padding-top: 0 !important; }
 .block-container { padding-top: 2rem !important; max-width: 1600px !important; }
 
-/* ─── Card (matches bg-card/50 border-border/50 rounded-xl) ──── */
 .v-card {
     background-color: rgba(9,9,11,0.5);
     border: 1px solid rgba(39,39,42,0.5);
@@ -49,53 +34,6 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     padding: 20px;
 }
 
-/* ─── Status Badges (StatusStrip.tsx) ─────────────────────────── */
-.v-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    background-color: #09090b;
-    border: 1px solid rgba(39,39,42,0.5);
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 500;
-    color: #a1a1aa;
-}
-
-/* ─── Alert Banner (bg-success/10 border-success/30) ──────────── */
-.v-banner-ok {
-    background-color: rgba(34,197,94,0.1);
-    border: 1px solid rgba(34,197,94,0.3);
-    border-radius: 1rem;
-    padding: 24px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    box-shadow: 0 0 30px rgba(16,185,129,0.05);
-}
-
-/* ─── Gauge Card (SensorGauges.tsx) ───────────────────────────── */
-.v-gauge-card {
-    background-color: rgba(9,9,11,0.5);
-    border: 1px solid rgba(39,39,42,0.5);
-    border-radius: 0.75rem;
-    padding: 16px;
-    position: relative;
-    height: 180px;
-}
-.v-gauge-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #a1a1aa;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-/* ─── Schematic Subsystem Box ─────────────────────────────────── */
 .v-subsys {
     border: 2px solid #27272a;
     border-radius: 4px;
@@ -114,18 +52,6 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     box-shadow: 0 0 0 2px rgba(250,250,250,0.15);
 }
 
-/* ─── Detail Row (AI panel, schematic detail) ─────────────────── */
-.v-detail-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(39,39,42,0.5);
-    font-size: 14px;
-}
-.v-detail-row:last-child { border-bottom: none; }
-
-/* ─── Prediction Horizon Row (AIPredictionPanel.tsx) ──────────── */
 .v-pred-row {
     display: flex;
     justify-content: space-between;
@@ -156,7 +82,6 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     display: inline-block;
 }
 
-/* ─── SHAP bar row ────────────────────────────────────────────── */
 .v-shap-bar-row {
     display: flex;
     align-items: center;
@@ -169,9 +94,37 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
 .v-shap-bar-track { flex: 1; height: 20px; background: transparent; border-radius: 0 4px 4px 0; }
 .v-shap-bar-fill  { height: 100%; border-radius: 0 4px 4px 0; }
 
-/* ─── Footer ───────────────────�# ──────────────────────────────────────────────────────────────────────
-# 1. HEADER: Title + StatusStrip badges (Exact Vercel Lucide icons & styling)
-# ──────────────────────────────────────────────────────────────────────
+.v-footer {
+    text-align: center;
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(39,39,42,0.5);
+}
+.v-footer-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #a1a1aa;
+    background: rgba(39,39,42,0.3);
+    padding: 6px 12px;
+    border-radius: 9999px;
+    border: 1px solid rgba(39,39,42,0.5);
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Live Data Simulation
+np.random.seed(int(datetime.now().second))
+pressure_val = round(float(np.random.uniform(7.8, 8.4)), 1)
+temp_val = round(float(np.random.uniform(59.5, 62.0)), 1)
+current_val = round(float(np.random.uniform(7.6, 8.4)), 1)
+tp3_val = round(float(np.random.uniform(9.4, 9.9)), 1)
+h1_val = round(float(np.random.uniform(0.04, 0.06)), 3)
+latency_ms = int(np.random.uniform(18, 25))
+now_str = datetime.now().strftime("%I:%M:%S %p")
+
+# Lucide Icons (Data URIs)
 shield_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%23fafafa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E"
 zap_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23f59e0b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/%3E%3C/svg%3E"
 server_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='2' width='20' height='8' rx='2' ry='2'/%3E%3Crect x='2' y='14' width='20' height='8' rx='2' ry='2'/%3E%3Cline x1='6' y1='6' x2='6.01' y2='6'/%3E%3Cline x1='6' y1='18' x2='6.01' y2='18'/%3E%3C/svg%3E"
@@ -180,6 +133,7 @@ activity_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' wi
 cpu_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a855f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='16' height='16' rx='2' ry='2'/%3E%3Crect x='9' y='9' width='6' height='6'/%3E%3Cline x1='9' y1='1' x2='9' y2='4'/%3E%3Cline x1='15' y1='1' x2='15' y2='4'/%3E%3Cline x1='9' y1='20' x2='9' y2='23'/%3E%3Cline x1='15' y1='20' x2='15' y2='23'/%3E%3Cline x1='20' y1='9' x2='23' y2='9'/%3E%3Cline x1='20' y1='15' x2='23' y1='15'/%3E%3Cline x1='1' y1='9' x2='4' y2='9'/%3E%3Cline x1='1' y1='15' x2='4' y2='15'/%3E%3C/svg%3E"
 check_circle_large = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E%3C/svg%3E"
 
+# 1. HEADER (Exact Vercel Spec)
 st.html(f"""
 <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:24px; border-bottom:1px solid rgba(39,39,42,0.4); margin-bottom:28px;">
     <div style="display:flex; align-items:center; gap:16px;">
@@ -192,24 +146,20 @@ st.html(f"""
         </div>
     </div>
     <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
-        <!-- Badge 1: Inference -->
         <div style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
             <img src="{zap_icon}" width="14" height="14" style="display:block;" />
             <span>Inference {latency_ms}ms</span>
         </div>
-        <!-- Badge 2: Redis -->
         <div style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
             <img src="{server_icon}" width="14" height="14" style="display:block;" />
             <span>Redis</span>
             <img src="{check_icon}" width="14" height="14" style="display:block;" />
         </div>
-        <!-- Badge 3: WebSocket -->
         <div style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
             <img src="{activity_icon}" width="14" height="14" style="display:block;" />
             <span>WebSocket</span>
             <span style="color:#22c55e; font-weight:700; margin-left:1px;">(Live)</span>
         </div>
-        <!-- Badge 4: Model -->
         <div style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
             <img src="{cpu_icon}" width="14" height="14" style="display:block;" />
             <span>Model v2.1</span>
@@ -218,9 +168,7 @@ st.html(f"""
 </div>
 """)
 
-# ──────────────────────────────────────────────────────────────────────
-# 2. ALERT BANNER: "Continue Operation" (Exact Vercel Alert Spec)
-# ──────────────────────────────────────────────────────────────────────
+# 2. ALERT BANNER: "Continue Operation" (Exact Vercel Spec)
 st.html(f"""
 <div style="background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:1rem; padding:24px; display:flex; align-items:center; gap:20px; box-shadow:0 0 30px rgba(16,185,129,0.05); margin-bottom:28px;">
     <div style="padding:16px; background:rgba(34,197,94,0.2); border-radius:9999px; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
@@ -231,46 +179,10 @@ st.html(f"""
         <p style="margin:4px 0 0 0; font-size:14px; color:rgba(250,250,250,0.8); font-weight:500;">All telemetry nominal. No immediate maintenance required.</p>
     </div>
 </div>
-""");" />
-            <span>Redis</span>
-            <img src="{check_icon}" width="14" height="14" style="display:block;" />
-        </div>
-        <!-- Badge 3: WebSocket -->
-        <div style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
-            <img src="{activity_icon}" width="14" height="14" style="display:block;" />
-            <span>WebSocket</span>
-            <span style="color:#22c55e; font-weight:700; margin-left:1px;">(Live)</span>
-        </div>
-        <!-- Badge 4: Model -->
-        <div style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
-            <img src="{cpu_icon}" width="14" height="14" style="display:block;" />
-            <span>Model v2.1</span>
-        </div>
-    </div>
-</div>
 """)
 
-# ──────────────────────────────────────────────────────────────────────
-# 2. ALERT BANNER: "Continue Operation"
-# ──────────────────────────────────────────────────────────────────────
-st.html("""
-<div class="v-banner-ok" style="margin-bottom:32px;">
-    <div style="padding:16px; background:rgba(34,197,94,0.2); border-radius:50%; flex-shrink:0;">
-        <span style="font-size:28px; color:#22c55e;">✓</span>
-    </div>
-    <div>
-        <h2 style="margin:0; font-size:20px; font-weight:800; color:#22c55e; letter-spacing:0.05em; text-transform:uppercase;">Continue Operation</h2>
-        <p style="margin:6px 0 0 0; font-size:14px; color:rgba(250,250,250,0.8); font-weight:500;">All telemetry nominal. No immediate maintenance required.</p>
-    </div>
-</div>
-""")
-
-# ──────────────────────────────────────────────────────────────────────
-# 3. SENSOR GAUGES (3 columns) — Plotly Indicator (clean half-circle)
-# ──────────────────────────────────────────────────────────────────────
-
+# 3. SENSOR GAUGES (3 columns)
 def make_gauge(value, vmin, vmax, color, unit):
-    """Create a clean half-circle gauge matching Vercel Recharts PieChart look."""
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=value,
@@ -283,7 +195,7 @@ def make_gauge(value, vmin, vmax, color, unit):
                 'range': [vmin, vmax],
                 'tickwidth': 0,
                 'tickcolor': 'rgba(0,0,0,0)',
-                'tickvals': [],  # Hide all tick marks
+                'tickvals': [],
                 'showticklabels': False,
             },
             'bar': {'color': color, 'thickness': 0.35},
@@ -306,68 +218,56 @@ def make_gauge(value, vmin, vmax, color, unit):
 g1, g2, g3 = st.columns(3)
 
 with g1:
-    st.html("""<div class="v-card" style="padding-bottom:0;"><div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.05em;"><span style="color:#3b82f6;">⏱</span> Pressure</div></div>""")
+    st.html("""<div class="v-card" style="padding-bottom:0;"><div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.05em;">Pressure</div></div>""")
     st.plotly_chart(make_gauge(pressure_val, 0, 12, '#3b82f6', 'BAR'), use_container_width=True, key='g1')
 
 with g2:
-    st.html("""<div class="v-card" style="padding-bottom:0;"><div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.05em;"><span style="color:#ef4444;">🌡</span> Temperature</div></div>""")
-    st.plotly_chart(make_gauge(temp_val, 20, 100, '#ef4444', '°C'), use_container_width=True, key='g2')
+    st.html("""<div class="v-card" style="padding-bottom:0;"><div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.05em;">Temperature</div></div>""")
+    st.plotly_chart(make_gauge(temp_val, 20, 100, '#ef4444', 'C'), use_container_width=True, key='g2')
 
 with g3:
-    st.html("""<div class="v-card" style="padding-bottom:0;"><div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.05em;"><span style="color:#f59e0b;">⚡</span> Motor Current</div></div>""")
+    st.html("""<div class="v-card" style="padding-bottom:0;"><div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.05em;">Motor Current</div></div>""")
     st.plotly_chart(make_gauge(current_val, 0, 15, '#f59e0b', 'AMPS'), use_container_width=True, key='g3')
 
-# ──────────────────────────────────────────────────────────────────────
-# MAIN ANALYTICAL GRID: 2/3 left + 1/3 right (matches lg:grid-cols-3)
-# ──────────────────────────────────────────────────────────────────────
+# MAIN ANALYTICAL GRID
 left_col, right_col = st.columns([2, 1])
 
-# ── LEFT COLUMN ──────────────────────────────────────────────────────
 with left_col:
-    # 4. Interactive APU Schematic
+    # Interactive APU Schematic
     st.html(f"""
     <div class="v-card" style="margin-bottom:24px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
             <div style="font-size:18px; font-weight:700; color:#fafafa; display:flex; align-items:center; gap:8px;">
-                <span>⚙️</span> Interactive APU Schematic
+                Interactive APU Schematic
             </div>
             <div style="font-size:12px; display:flex; align-items:center; gap:6px; color:#a1a1aa; background:rgba(39,39,42,0.5); padding:4px 8px; border-radius:4px; border:1px solid rgba(39,39,42,0.5);">
-                <span style="width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block;animation:pulse 2s infinite;"></span>
+                <span style="width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block;"></span>
                 Live Data Connected
             </div>
         </div>
         <p style="font-size:14px; color:#a1a1aa; margin-bottom:24px;">Click physical subsystems to inspect real-time sensor metrics and localized AI failure attribution.</p>
 
         <div style="display:flex; min-height:250px;">
-            <!-- Left: Schematic Diagram -->
             <div style="flex:1; background:rgba(39,39,42,0.2); border-radius:8px; padding:24px; display:flex; align-items:center; justify-content:center; border-right:1px solid rgba(39,39,42,0.5); position:relative;">
                 <div style="width:100%; max-width:360px; position:relative; aspect-ratio:4/3;">
-                    <!-- Reservoir (oval at top) -->
                     <div class="v-subsys" style="position:absolute; top:8%; left:8%; width:84%; height:22%; border-radius:9999px; display:flex; align-items:center; justify-content:center;">
                         Reservoir
                     </div>
-                    <!-- Pipe down from reservoir to compressor -->
                     <div style="position:absolute; top:30%; left:50%; width:2px; height:10%; background:#27272a;"></div>
-                    <!-- Motor (left) -->
                     <div class="v-subsys" style="position:absolute; top:42%; left:4%; width:22%; height:22%; display:flex; align-items:center; justify-content:center;">
                         Motor
                     </div>
-                    <!-- Pipe motor→compressor -->
                     <div style="position:absolute; top:53%; left:26%; width:6%; height:2px; background:#27272a;"></div>
-                    <!-- Compressor (center, active) -->
                     <div class="v-subsys active" style="position:absolute; top:40%; left:28%; width:44%; height:30%; display:flex; align-items:center; justify-content:center;">
                         Compressor
                     </div>
-                    <!-- Pipe down from compressor to valves -->
                     <div style="position:absolute; top:70%; left:50%; width:2px; height:6%; background:#27272a;"></div>
-                    <!-- Valves (small, bottom) -->
                     <div class="v-subsys" style="position:absolute; top:76%; left:44%; width:12%; height:18%; display:flex; align-items:center; justify-content:center; writing-mode:vertical-rl; text-orientation:mixed; font-size:12px;">
                         Valves
                     </div>
                 </div>
             </div>
 
-            <!-- Right: Detail Panel (matches md:w-[280px] p-6) -->
             <div style="width:260px; padding:24px; display:flex; flex-direction:column; gap:12px; background:rgba(9,9,11,0.5);">
                 <div style="border-bottom:1px solid rgba(39,39,42,0.5); padding-bottom:12px;">
                     <h3 style="margin:0; font-size:20px; font-weight:700; color:#fafafa; letter-spacing:-0.025em;">Compressor</h3>
@@ -379,7 +279,7 @@ with left_col:
                     </div>
                     <div style="display:flex; justify-content:space-between;">
                         <span style="color:#a1a1aa;">Temperature</span>
-                        <span style="color:#fafafa; font-weight:600;">{temp_val}°C</span>
+                        <span style="color:#fafafa; font-weight:600;">{temp_val} C</span>
                     </div>
                     <div style="display:flex; justify-content:space-between;">
                         <span style="color:#a1a1aa;">Pressure/Current</span>
@@ -401,7 +301,7 @@ with left_col:
     </div>
     """)
 
-    # 5. Live Sensor Telemetry
+    # Live Sensor Telemetry
     st.html("""
     <div class="v-card" style="padding-bottom:0;">
         <div style="margin-bottom:4px;">
@@ -410,13 +310,13 @@ with left_col:
         </div>
     </div>
     """)
-    # Telemetry line chart (matches TelemetryChart.tsx)
+
     t_idx = pd.date_range(datetime.now().strftime("%Y-%m-%d"), periods=60, freq="2s")
     np.random.seed(42)
     df = pd.DataFrame({
         "TP2": np.random.normal(pressure_val, 0.3, 60),
         "TP3": np.random.normal(tp3_val, 0.2, 60),
-        "H1":  np.random.normal(0.05, 0.005, 60) * 100,  # scale for visibility
+        "H1":  np.random.normal(0.05, 0.005, 60) * 100,
     }, index=t_idx)
 
     fig_tele = go.Figure()
@@ -439,13 +339,12 @@ with left_col:
     )
     st.plotly_chart(fig_tele, use_container_width=True, key='telemetry')
 
-# ── RIGHT COLUMN ─────────────────────────────────────────────────────
 with right_col:
-    # 6. AI Predictive Analysis
+    # AI Predictive Analysis
     st.html("""
     <div class="v-card" style="margin-bottom:24px;">
         <div style="font-size:18px; font-weight:700; color:#fafafa; display:flex; align-items:center; gap:8px; margin-bottom:16px;">
-            <span>🧠</span> AI Predictive Analysis
+            AI Predictive Analysis
         </div>
         <div style="display:flex; flex-direction:column; gap:0;">
             <div class="v-pred-row">
@@ -479,7 +378,7 @@ with right_col:
     </div>
     """)
 
-    # 7. Top AI Contributors (SHAP horizontal bar chart)
+    # Top AI Contributors
     shap_data = [
         ("TP2", 12.0, "#ef4444"),
         ("TP3", 8.0, "#f59e0b"),
@@ -503,7 +402,7 @@ with right_col:
     st.html(f"""
     <div class="v-card" style="height:300px; margin-bottom:24px;">
         <div style="font-size:18px; font-weight:700; color:#fafafa; display:flex; align-items:center; gap:8px; margin-bottom:2px;">
-            <span>📊</span> Top AI Contributors
+            Top AI Contributors
         </div>
         <p style="font-size:12px; color:#a1a1aa; margin-bottom:16px;">The physical sensors driving the AI's current risk assessment.</p>
         <div style="display:flex; flex-direction:column; gap:2px;">
@@ -512,12 +411,12 @@ with right_col:
     </div>
     """)
 
-    # 8. 4H Risk Trend (sparkline)
+    # 4H Risk Trend
     st.html("""
     <div class="v-card" style="margin-bottom:24px; padding:12px 20px;">
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:14px; font-weight:600; color:#a1a1aa; margin-bottom:8px;">
             <div style="display:flex; align-items:center; gap:6px;">
-                <span>📈</span> 4H Risk Trend
+                4H Risk Trend
             </div>
             <span style="color:#22c55e; font-weight:700;">0.0%</span>
         </div>
@@ -530,16 +429,14 @@ with right_col:
     </div>
     """)
 
-    # 9. Event Timeline
+    # Event Timeline
     st.html(f"""
     <div class="v-card" style="height:250px;">
         <div style="font-size:14px; font-weight:600; color:#a1a1aa; display:flex; align-items:center; gap:8px; margin-bottom:16px;">
-            <span>🕐</span> Event Timeline
+            Event Timeline
         </div>
         <div style="position:relative; padding-left:20px;">
-            <!-- vertical line -->
             <div style="position:absolute; left:5px; top:0; bottom:0; width:1px; background:rgba(39,39,42,0.5);"></div>
-            <!-- Event 1 -->
             <div style="display:flex; gap:12px; padding-bottom:16px; position:relative;">
                 <div style="position:absolute; left:-18px; top:4px; width:10px; height:10px; border-radius:50%; background:#22c55e; border:2px solid #09090b; z-index:1;"></div>
                 <div>
@@ -551,9 +448,7 @@ with right_col:
     </div>
     """)
 
-# ──────────────────────────────────────────────────────────────────────
-# FOOTER
-# ──────────────────────────────────────────────────────────────────────
+# Footer
 st.html(f"""
 <div class="v-footer">
     <span class="v-footer-pill">
