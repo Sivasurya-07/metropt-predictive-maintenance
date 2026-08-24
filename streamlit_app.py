@@ -276,19 +276,19 @@ def render_gauge(value, vmin, vmax, color, unit, label_icon, label_text):
         <div style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; color:#a1a1aa; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">
             {label_icon} {label_text}
         </div>
-        <div style="display:flex; flex-direction:column; align-items:center;">
-            <svg viewBox="0 0 300 95" style="width:100%; max-width:280px;">
+        <div style="position:relative; width:100%; height:120px; display:flex; justify-content:center; align-items:flex-start;">
+            <svg viewBox="0 0 300 95" style="width:280px; height:auto; display:block; margin:0 auto;">
                 <path d="{bg}" fill="#27272a"/>
                 <path d="{fl}" fill="{color}"/>
             </svg>
-            <div style="margin-top:-30px; text-align:center;">
+            <div style="position:absolute; bottom:4px; left:0; right:0; text-align:center;">
                 <div style="font-size:30px; font-weight:900; color:#fafafa; letter-spacing:-0.05em; line-height:1;">{value}</div>
                 <div style="font-size:12px; font-weight:700; color:#a1a1aa; margin-top:2px;">{unit}</div>
             </div>
         </div>
     </div>
     """
-    components.html(html, height=180)
+    components.html(html, height=185)
 
 g1, g2, g3 = st.columns(3)
 
