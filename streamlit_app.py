@@ -246,61 +246,63 @@ st.html("""
 # 3. SENSOR GAUGES (3 columns) — SVG half-donut matching Recharts PieChart
 # ──────────────────────────────────────────────────────────────────────
 import math
+import streamlit.components.v1 as components
 
-def svg_half_donut(value, vmin, vmax, color, unit, label_icon, label_text):
-    """Generate a self-contained SVG half-donut gauge matching Vercel Recharts."""
+def render_gauge(value, vmin, vmax, color, unit, label_icon, label_text):
+    """Render a clean SVG half-donut gauge card using components.html for reliable sizing."""
     pct = max(0.001, min(1, (value - vmin) / (vmax - vmin)))
 
-    # Arc geometry: center at (150, 90), outer=80, inner=60
-    acx, acy = 150, 90
-    r_out, r_in = 80, 60
+    # Arc center at (150, 85) inside a 300x95 SVG — semicircle faces up
+    acx, acy = 150, 85
+    r_out, r_in = 75, 55
 
     def pt(angle, r):
         rad = math.radians(angle)
-        return acx + r * math.cos(rad), acy - r * math.sin(rad)
+        return round(acx + r * math.cos(rad), 2), round(acy - r * math.sin(rad), 2)
 
     # Background arc (full 180°)
     so = pt(180, r_out); eo = pt(0, r_out)
     ei = pt(0, r_in);   si = pt(180, r_in)
     bg = f"M{so[0]},{so[1]} A{r_out},{r_out} 0 0,1 {eo[0]},{eo[1]} L{ei[0]},{ei[1]} A{r_in},{r_in} 0 0,0 {si[0]},{si[1]}Z"
 
-    # Fill arc (pct of 180°)
+    # Fill arc
     ea = 180 - pct * 180
     la = 1 if pct > 0.5 else 0
     fo = pt(ea, r_out); fi = pt(ea, r_in)
     fl = f"M{so[0]},{so[1]} A{r_out},{r_out} 0 {la},1 {fo[0]},{fo[1]} L{fi[0]},{fi[1]} A{r_in},{r_in} 0 {la},0 {si[0]},{si[1]}Z"
 
-    return f"""
-    <div style="background:rgba(9,9,11,0.5); border:1px solid rgba(39,39,42,0.5); border-radius:0.75rem; padding:16px;">
-        <div style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; color:#a1a1aa; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">
+    html = f"""
+    <div style="background:rgba(9,9,11,0.5); border:1px solid rgba(39,39,42,0.5); border-radius:0.75rem; padding:16px; font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',Roboto,sans-serif;">
+        <div style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; color:#a1a1aa; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">
             {label_icon} {label_text}
         </div>
-        <div style="position:relative; width:100%; display:flex; justify-content:center;">
-            <svg viewBox="0 0 300 100" width="100%" style="max-width:300px; display:block;">
+        <div style="display:flex; flex-direction:column; align-items:center;">
+            <svg viewBox="0 0 300 95" style="width:100%; max-width:280px;">
                 <path d="{bg}" fill="#27272a"/>
                 <path d="{fl}" fill="{color}"/>
             </svg>
-            <div style="position:absolute; bottom:0; left:50%; transform:translateX(-50%); text-align:center;">
+            <div style="margin-top:-30px; text-align:center;">
                 <div style="font-size:30px; font-weight:900; color:#fafafa; letter-spacing:-0.05em; line-height:1;">{value}</div>
                 <div style="font-size:12px; font-weight:700; color:#a1a1aa; margin-top:2px;">{unit}</div>
             </div>
         </div>
     </div>
     """
+    components.html(html, height=180)
 
 g1, g2, g3 = st.columns(3)
 
 with g1:
-    st.html(svg_half_donut(pressure_val, 0, 12, '#3b82f6', 'BAR',
-                           '<span style="color:#3b82f6;">⏱</span>', 'Pressure'))
+    render_gauge(pressure_val, 0, 12, '#3b82f6', 'BAR',
+                 '<span style="color:#3b82f6;">⏱</span>', 'Pressure')
 
 with g2:
-    st.html(svg_half_donut(temp_val, 20, 100, '#ef4444', '°C',
-                           '<span style="color:#ef4444;">🌡</span>', 'Temperature'))
+    render_gauge(temp_val, 20, 100, '#ef4444', '°C',
+                 '<span style="color:#ef4444;">🌡</span>', 'Temperature')
 
 with g3:
-    st.html(svg_half_donut(current_val, 0, 15, '#f59e0b', 'AMPS',
-                           '<span style="color:#f59e0b;">⚡</span>', 'Motor Current'))
+    render_gauge(current_val, 0, 15, '#f59e0b', 'AMPS',
+                 '<span style="color:#f59e0b;">⚡</span>', 'Motor Current')
 
 # ──────────────────────────────────────────────────────────────────────
 # MAIN ANALYTICAL GRID: 2/3 left + 1/3 right (matches lg:grid-cols-3)
