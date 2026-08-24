@@ -207,15 +207,18 @@ now_str = datetime.now().strftime("%I:%M:%S %p")
 # ──────────────────────────────────────────────────────────────────────
 # 1. HEADER: Title + StatusStrip badges (Exact Vercel Lucide icons & styling)
 # ──────────────────────────────────────────────────────────────────────
+shield_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='%23fafafa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E"
+zap_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23f59e0b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/%3E%3C/svg%3E"
+server_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='2' width='20' height='8' rx='2' ry='2'/%3E%3Crect x='2' y='14' width='20' height='8' rx='2' ry='2'/%3E%3Cline x1='6' y1='6' x2='6.01' y2='6'/%3E%3Cline x1='6' y1='18' x2='6.01' y2='18'/%3E%3C/svg%3E"
+check_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E%3C/svg%3E"
+activity_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='22 12 18 12 15 21 9 3 6 12 2 12'/%3E%3C/svg%3E"
+cpu_icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a855f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='16' height='16' rx='2' ry='2'/%3E%3Crect x='9' y='9' width='6' height='6'/%3E%3Cline x1='9' y1='1' x2='9' y2='4'/%3E%3Cline x1='15' y1='1' x2='15' y2='4'/%3E%3Cline x1='9' y1='20' x2='9' y2='23'/%3E%3Cline x1='15' y1='20' x2='15' y2='23'/%3E%3Cline x1='20' y1='9' x2='23' y2='9'/%3E%3Cline x1='20' y1='15' x2='23' y2='15'/%3E%3Cline x1='1' y1='9' x2='4' y2='9'/%3E%3Cline x1='1' y1='15' x2='4' y2='15'/%3E%3C/svg%3E"
+
 st.html(f"""
 <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:20px; border-bottom:1px solid rgba(39,39,42,0.4); margin-bottom:28px;">
     <div style="display:flex; align-items:center; gap:16px;">
         <div style="padding:10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:0.75rem; display:flex; align-items:center; justify-content:center; width:48px; height:48px; box-sizing:border-box;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fafafa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
+            <img src="{shield_icon}" width="28" height="28" style="display:block;" />
         </div>
         <div>
             <h1 style="margin:0; font-size:26px; font-weight:800; letter-spacing:-0.025em; color:#fafafa; line-height:1.2;">MetroPT APU Predictive Maintenance</h1>
@@ -225,24 +228,24 @@ st.html(f"""
     <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
         <!-- Badge 1: Inference -->
         <div style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            <img src="{zap_icon}" width="14" height="14" style="display:block;" />
             <span>Inference {latency_ms}ms</span>
         </div>
         <!-- Badge 2: Redis -->
         <div style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+            <img src="{server_icon}" width="14" height="14" style="display:block;" />
             <span>Redis</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <img src="{check_icon}" width="14" height="14" style="display:block;" />
         </div>
         <!-- Badge 3: WebSocket -->
         <div style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <img src="{activity_icon}" width="14" height="14" style="display:block;" />
             <span>WebSocket</span>
             <span style="color:#22c55e; font-weight:700; margin-left:1px;">(Live)</span>
         </div>
         <!-- Badge 4: Model -->
         <div style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; background:#09090b; border:1px solid rgba(39,39,42,0.5); border-radius:6px; font-size:12px; font-weight:500; color:#a1a1aa;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="15" x2="23" y2="15"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="15" x2="4" y2="15"/></svg>
+            <img src="{cpu_icon}" width="14" height="14" style="display:block;" />
             <span>Model v2.1</span>
         </div>
     </div>
