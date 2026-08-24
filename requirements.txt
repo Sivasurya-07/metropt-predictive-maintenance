@@ -15,3 +15,5 @@ shap>=0.43.0
 optuna>=3.4.0
 pandera>=0.18.0
 matplotlib>=3.8.0
+streamlit>=1.30.0
+plotly>=5.18.0
