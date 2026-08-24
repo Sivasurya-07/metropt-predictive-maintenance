@@ -243,54 +243,84 @@ st.html("""
 """)
 
 # ──────────────────────────────────────────────────────────────────────
-# 3. SENSOR GAUGES (3 columns) — half-donut like Recharts PieChart
+# 3. SENSOR GAUGES (3 columns) — SVG half-donut matching Recharts PieChart
+#    Vercel uses: PieChart > Pie startAngle=180 endAngle=0
+#                 innerRadius=60 outerRadius=80, cx=50% cy=85%
 # ──────────────────────────────────────────────────────────────────────
-def make_half_donut(value, vmin, vmax, color, unit):
-    pct = max(0, min(1, (value - vmin) / (vmax - vmin)))
-    # bg arc = full 180°, fill arc = pct * 180°
-    fig = go.Figure()
-    # background arc
-    theta_bg = np.linspace(180, 0, 100)
-    r_inner, r_outer = 0.6, 0.8
-    x_bg = list(np.cos(np.radians(theta_bg)) * r_outer) + list(np.cos(np.radians(theta_bg[::-1])) * r_inner)
-    y_bg = list(np.sin(np.radians(theta_bg)) * r_outer) + list(np.sin(np.radians(theta_bg[::-1])) * r_inner)
-    fig.add_trace(go.Scatter(x=x_bg, y=y_bg, fill='toself', fillcolor='#27272a',
-                             line=dict(width=0), hoverinfo='skip', showlegend=False))
-    # fill arc
-    theta_fill = np.linspace(180, 180 - pct * 180, 100)
-    x_f = list(np.cos(np.radians(theta_fill)) * r_outer) + list(np.cos(np.radians(theta_fill[::-1])) * r_inner)
-    y_f = list(np.sin(np.radians(theta_fill)) * r_outer) + list(np.sin(np.radians(theta_fill[::-1])) * r_inner)
-    fig.add_trace(go.Scatter(x=x_f, y=y_f, fill='toself', fillcolor=color,
-                             line=dict(width=0), hoverinfo='skip', showlegend=False))
-    # center text
-    fig.add_annotation(x=0, y=0.08, text=f"<b style='font-size:28px;color:#fafafa'>{value}</b><br><span style='font-size:11px;color:#a1a1aa;font-weight:700'>{unit}</span>",
-                       showarrow=False, font=dict(size=28, color='#fafafa'))
-    fig.update_layout(
-        xaxis=dict(visible=False, range=[-1, 1]),
-        yaxis=dict(visible=False, range=[-0.15, 1]),
-        margin=dict(l=0, r=0, t=0, b=0),
-        height=120,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
+import math
+
+def svg_half_donut(value, vmin, vmax, color, unit, label_icon, label_text):
+    """Generate an SVG half-donut gauge card matching the exact Vercel Recharts look."""
+    pct = max(0.001, min(1, (value - vmin) / (vmax - vmin)))
+
+    # SVG arc parameters (matching Recharts innerRadius=60, outerRadius=80)
+    cx, cy = 150, 130  # center shifted down (like cy=85% in Recharts)
+    r_outer, r_inner = 80, 60
+
+    # Helper to compute arc endpoint
+    def arc_point(angle_deg, radius):
+        rad = math.radians(angle_deg)
+        return cx + radius * math.cos(rad), cy - radius * math.sin(rad)
+
+    # Background arc: full 180° (from 180° to 0°)
+    bg_start_outer = arc_point(180, r_outer)
+    bg_end_outer = arc_point(0, r_outer)
+    bg_end_inner = arc_point(0, r_inner)
+    bg_start_inner = arc_point(180, r_inner)
+
+    bg_path = (
+        f"M {bg_start_outer[0]},{bg_start_outer[1]} "
+        f"A {r_outer},{r_outer} 0 0,1 {bg_end_outer[0]},{bg_end_outer[1]} "
+        f"L {bg_end_inner[0]},{bg_end_inner[1]} "
+        f"A {r_inner},{r_inner} 0 0,0 {bg_start_inner[0]},{bg_start_inner[1]} "
+        f"Z"
     )
-    return fig
+
+    # Fill arc: from 180° to (180 - pct*180)°
+    fill_end_angle = 180 - pct * 180
+    fill_large_arc = 1 if pct > 0.5 else 0
+    fill_start_outer = arc_point(180, r_outer)
+    fill_end_outer = arc_point(fill_end_angle, r_outer)
+    fill_end_inner = arc_point(fill_end_angle, r_inner)
+    fill_start_inner = arc_point(180, r_inner)
+
+    fill_path = (
+        f"M {fill_start_outer[0]},{fill_start_outer[1]} "
+        f"A {r_outer},{r_outer} 0 {fill_large_arc},1 {fill_end_outer[0]},{fill_end_outer[1]} "
+        f"L {fill_end_inner[0]},{fill_end_inner[1]} "
+        f"A {r_inner},{r_inner} 0 {fill_large_arc},0 {fill_start_inner[0]},{fill_start_inner[1]} "
+        f"Z"
+    )
+
+    return f"""
+    <div class="v-gauge-card">
+        <div class="v-gauge-label">{label_icon} {label_text}</div>
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:calc(100% - 28px);">
+            <svg width="300" height="140" viewBox="0 0 300 160" style="display:block;">
+                <path d="{bg_path}" fill="#27272a" />
+                <path d="{fill_path}" fill="{color}" />
+            </svg>
+            <div style="margin-top:-40px; text-align:center; position:relative; z-index:1;">
+                <div style="font-size:30px; font-weight:900; color:#fafafa; letter-spacing:-0.05em; line-height:1;">{value}</div>
+                <div style="font-size:12px; font-weight:700; color:#a1a1aa; margin-top:2px;">{unit}</div>
+            </div>
+        </div>
+    </div>
+    """
 
 g1, g2, g3 = st.columns(3)
 
 with g1:
-    st.html('<div class="v-gauge-card"><div class="v-gauge-label"><span style="color:#3b82f6;">⏱</span> Pressure</div>')
-    st.plotly_chart(make_half_donut(pressure_val, 0, 12, '#3b82f6', 'BAR'), use_container_width=True, key='g1')
-    st.html('</div>')
+    st.html(svg_half_donut(pressure_val, 0, 12, '#3b82f6', 'BAR',
+                           '<span style="color:#3b82f6;">⏱</span>', 'Pressure'))
 
 with g2:
-    st.html('<div class="v-gauge-card"><div class="v-gauge-label"><span style="color:#ef4444;">🌡</span> Temperature</div>')
-    st.plotly_chart(make_half_donut(temp_val, 20, 100, '#ef4444', '°C'), use_container_width=True, key='g2')
-    st.html('</div>')
+    st.html(svg_half_donut(temp_val, 20, 100, '#ef4444', '°C',
+                           '<span style="color:#ef4444;">🌡</span>', 'Temperature'))
 
 with g3:
-    st.html('<div class="v-gauge-card"><div class="v-gauge-label"><span style="color:#f59e0b;">⚡</span> Motor Current</div>')
-    st.plotly_chart(make_half_donut(current_val, 0, 15, '#f59e0b', 'AMPS'), use_container_width=True, key='g3')
-    st.html('</div>')
+    st.html(svg_half_donut(current_val, 0, 15, '#f59e0b', 'AMPS',
+                           '<span style="color:#f59e0b;">⚡</span>', 'Motor Current'))
 
 # ──────────────────────────────────────────────────────────────────────
 # MAIN ANALYTICAL GRID: 2/3 left + 1/3 right (matches lg:grid-cols-3)
