@@ -4,6 +4,13 @@ import numpy as np
 import plotly.graph_objects as go
 from datetime import datetime
 
+try:
+    from streamlit_autorefresh import st_autorefresh
+    # Auto-refresh dashboard every 2 seconds for live telemetry streaming
+    st_autorefresh(interval=2000, limit=100000, key="telemetry_live_stream")
+except Exception:
+    pass
+
 # Page Config
 st.set_page_config(
     page_title="MetroPT APU Predictive Maintenance",
